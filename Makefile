@@ -1,4 +1,4 @@
-PROG = mpi_heat2D
+PROG = game
 MPICC = mpicc
 CC = gcc
 DFLAG = -DDEBUG #include this for debugging output
