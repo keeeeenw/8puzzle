@@ -52,7 +52,7 @@ int getBoardManhattan(int *board, int dim)
 	return sum;
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
 	int n = 4;
 	int *board;
@@ -61,5 +61,7 @@ int main(void)
 	shuffleBoard(board, n*n);
 	printBoard(board, n);
 	printf("Manhattan Distance is %d \n", getBoardManhattan(board, n));
+
+	return 0;
 }
 
