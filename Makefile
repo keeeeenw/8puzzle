@@ -6,7 +6,7 @@ OMPFLAG = -openmp
 LFLAGS = -o $(PROG)
 XWIN = -DX_DISPLAY -L/usr/X11R6/lib -lX11
 
-$(PROG).c-serial: $(PROG).c
+$(PROG): $(PROG).c
 	$(CC) $(LFLAGS) $(PROG).c
 
 clean:
