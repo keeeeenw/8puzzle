@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <iostream>
+#include <queue>
 
 void shuffleBoard(int *array, int n)
 {
@@ -61,6 +63,22 @@ int main(int argc, char *argv[])
 	shuffleBoard(board, n*n);
 	printBoard(board, n);
 	printf("Manhattan Distance is %d \n", getBoardManhattan(board, n));
+	return 0;
+
+	std::priority_queue<int> queue;
+
+	queue.push(100);
+	queue.push(300);
+	queue.push(50);
+	queue.push(150);
+
+	while (!queue.empty())
+	{
+		std::cout << queue.top() << std::endl;
+		queue.pop();
+	}
+
+	system("pause");
 
 	return 0;
 }
