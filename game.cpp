@@ -52,11 +52,14 @@ int getManhattan(int i, int dim, int sourceRow, int sourceCol)
 
 int getBoardManhattan(int *board, int dim)
 {
-	int i, j, sum=0, temp;
+	int i, j, sum=0, temp, item;
 	for(i=0; i<dim; i++){
 		for(j=0; j<dim; j++){
-			temp = getManhattan(board[dim*i+j], dim, i, j);
-			sum = sum + temp;
+            item = board[dim*i+j];
+            if(item != 0){
+                temp = getManhattan(item, dim, i, j);
+			    sum = sum + temp;
+            }
 		}
 	}
 	return sum;
