@@ -5,11 +5,10 @@
 #include <queue>		// for priority queue
 using namespace std;
 
-struct move
+struct state
 {
-	//Call(int *board, int dim, int moveSoFar, int lowerBound) :
-    //CallBoard(board), CallDim(dim), CallLowerBound(lowerBound) {}
-
+	Call(int *board, int dim, int moveSoFar, int lowerBound) :
+    CallBoard(board), CallDim(dim), CallLowerBound(lowerBound) {}
 	int *board;
 	int dim;
 	int moveSoFar;
@@ -17,7 +16,7 @@ struct move
 };
 
 struct Comp{
-	bool operator<(const move& lhs, const move& rhs)
+	bool operator<(const state& lhs, const state& rhs)
 	{
 		return lhs.lowerBound < rhs.lowerBound;
 	}
@@ -94,18 +93,18 @@ bool checkResult(int *board, int dim)
 	return correct;
 }
 
-void setMove(move *newMove, int *board, int dim, int moveSoFar)
+void setState(state *newState, int *board, int dim, int moveSoFar)
 {
-	newMove->board = board;
-	newMove->dim = dim;
-	newMove->moveSoFar = moveSoFar;
-	newMove->lowerBound = moveSoFar + getBoardManhattan(board, dim);
+	newState->board = board;
+	newState->dim = dim;
+	newState->moveSoFar = moveSoFar;
+	newState->lowerBound = moveSoFar + getBoardManhattan(board, dim);
 }
 
-void freeMove(move *Move)
+void freeState(state *State)
 {
-	free(Move->board);
-	free(Move);
+	free(State->board);
+	free(State);
 }
 
 int* moveHole(int direction, int *board, int dim)
@@ -159,12 +158,12 @@ int* moveHole(int direction, int *board, int dim)
 	return newBoard;
 }
 
-move* makeAMove(int direction, move *currentMove)
+state* makeAState(int direction, state *currentStaet)
 {
-	struct move *nextMove = (move*)malloc(sizeof(struct move));
-	setMove(nextMove, moveHole(direction, currentMove->board, currentMove->dim), 
-		currentMove->dim, currentMove->moveSoFar + 1);
-	return nextMove;
+	struct state *nextState = (state*)malloc(sizeof(struct state));
+	setState(nextState, moveHole(direction, currentState->board, currentState->dim), 
+		currentState->dim, currentState->moveSoFar + 1);
+	return nextState;
 }
 
 int main(int argc, char *argv[])
@@ -172,11 +171,11 @@ int main(int argc, char *argv[])
 	int n = 3;
 	int *board;
 	int *bestSolution;
-	move *currentMove;
+	state *currentState;
 
 	srand(time(NULL));
 
-	priority_queue<move, vector<move>, Comp> queue;
+	priority_queue<state, vector<state>, Comp> queue;
 
 	board = (int*)malloc(n*n * sizeof(int));
 	fillBoard(board, n);
@@ -186,8 +185,8 @@ int main(int argc, char *argv[])
 	// DEBUG
 	// printf("Manhattan Distance is %d \n", getBoardManhattan(board, n));
 
-	struct move *initial = (move*)malloc(sizeof(struct move));
-	setMove(initial, board, n, 0);
+	struct state *initial = (state*)malloc(sizeof(struct state));
+	setState(initial, board, n, 0);
 
 	// DEBUG
 	//printBoard(initial->board, n);
@@ -200,12 +199,12 @@ int main(int argc, char *argv[])
 	for(j=0; j<5; j++)
 	{
 		printf("iteration %d \n", j);
-		currentMove = queue.top();
-		struct move *nextMove;
+		currentState = queue.top();
+		struct state *nextState;
 		queue.pop();
-		if(checkResult(currentMove->board, n))
+		if(checkResult(currentState->board, n))
 		{
-			printBoard(currentMove->board, n);
+			printBoard(currentState->board, n);
 			exit(0);
 		}
 		else
@@ -215,7 +214,7 @@ int main(int argc, char *argv[])
 
 			// Find out the location of the hole
 			for(i=0; i<n*n; i++){
-				if(currentMove->board[i]==0){
+				if(currentState->board[i]==0){
 					holeRow = i / n;
 					holeCol = i % n;
 				}
@@ -286,18 +285,18 @@ int main(int argc, char *argv[])
 			for(i=0; i<numDirections; i++)
 			{
 				k = directions[i];
-				struct move *nextMove;
-				nextMove = makeAMove(k, currentMove);
+				struct state *nextState;
+				nextState = makeAState(k, currentState);
 
 				// DEBUG
-				printf("lowerboud when move %d is %d \n", k, nextMove->lowerBound);
-				printBoard(nextMove->board, n);
-				printf("Manhattan when move %d is %d \n", k, getBoardManhattan(nextMove->board, n));
+				printf("lowerboud when move %d is %d \n", k, nextState->lowerBound);
+				printBoard(nextState->board, n);
+				printf("Manhattan when move %d is %d \n", k, getBoardManhattan(nextState->board, n));
 
-				queue.push(*nextMove);
+				queue.push(*nextState);
 			}
 		}
-		freeMove(currentMove);
+		freeState(currentState);
 	}
 
 	system("pause");
@@ -310,7 +309,7 @@ int main(int argc, char *argv[])
 //std::cout << queue.top() << std::endl;
 
 
-				
+/*				
 				if(possibleNextMove->lowerBound < mininumBound){
 					nextMove = possibleNextMove;
 					mininumBound = possibleNextMove->lowerBound;
@@ -323,3 +322,4 @@ int main(int argc, char *argv[])
 				printf("lowerBound Finalized is %d \n", nextMove->lowerBound);
 				printf("chosenDirection is %d \n", chosenDirection);
 				printBoard(nextMove->board, n);			
+*/
