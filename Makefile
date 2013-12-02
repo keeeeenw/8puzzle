@@ -1,6 +1,6 @@
 PROG = game
-MPICC = mpicc
-CC = gcc
+MPICC = mpic++
+CC = g++
 DFLAG = -DDEBUG #include this for debugging output
 OMPFLAG = -openmp
 LFLAGS = -o $(PROG)
