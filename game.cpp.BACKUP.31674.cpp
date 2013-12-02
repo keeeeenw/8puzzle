@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+<<<<<<< HEAD
 #include <iostream>
 #include <queue>
 
@@ -9,6 +10,8 @@ struct move{
 	int moveSoFar;
 	int lowerBound;
 };
+=======
+>>>>>>> 2c38e01c75fffb07f75a5bd96f8f9208f1f59a80
 
 void shuffleBoard(int *array, int n)
 {
@@ -61,6 +64,7 @@ int getBoardManhattan(int *board, int dim)
 	return sum;
 }
 
+<<<<<<< HEAD
 bool checkResult(int *board, int dim)
 {
 	int i, j;
@@ -96,10 +100,13 @@ int* makeAMove(int direction, move *currentMove){
 	}else{}
 }
 
+=======
+>>>>>>> 2c38e01c75fffb07f75a5bd96f8f9208f1f59a80
 int main(int argc, char *argv[])
 {
 	int n = 4;
 	int *board;
+<<<<<<< HEAD
 	int *currentBoard;
 	int *bestSolution;
 
@@ -133,10 +140,20 @@ int main(int argc, char *argv[])
 	}
 
 	system("pause");
+=======
+	board = (int*)malloc(n*n * sizeof(int));
+	fillBoard(board, n);
+	shuffleBoard(board, n*n);
+	printBoard(board, n);
+	printf("Manhattan Distance is %d \n", getBoardManhattan(board, n));
+>>>>>>> 2c38e01c75fffb07f75a5bd96f8f9208f1f59a80
 
 	return 0;
 }
 
+<<<<<<< HEAD
 // junk
 
 //std::cout << queue.top() << std::endl;
+=======
+>>>>>>> 2c38e01c75fffb07f75a5bd96f8f9208f1f59a80
