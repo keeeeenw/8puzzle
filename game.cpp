@@ -3,13 +3,26 @@
 #include <string.h>		// for memcpy
 #include <iostream>		// for CPP
 #include <queue>		// for priority queue
+using namespace std;
 
-struct move{
+struct move
+{
+	//Call(int *board, int dim, int moveSoFar, int lowerBound) :
+    //CallBoard(board), CallDim(dim), CallLowerBound(lowerBound) {}
+
 	int *board;
 	int dim;
 	int moveSoFar;
 	int lowerBound;
 };
+
+struct Comp{
+	bool operator<(const move& lhs, const move& rhs)
+	{
+		return lhs.lowerBound < rhs.lowerBound;
+	}
+};
+
 
 void shuffleBoard(int *array, int n)
 {
@@ -78,7 +91,8 @@ bool checkResult(int *board, int dim)
 	return correct;
 }
 
-void setMove(move *newMove, int *board, int dim, int moveSoFar){
+void setMove(move *newMove, int *board, int dim, int moveSoFar)
+{
 	newMove->board = board;
 	newMove->dim = dim;
 	newMove->moveSoFar = moveSoFar;
@@ -159,7 +173,7 @@ int main(int argc, char *argv[])
 
 	srand(time(NULL));
 
-	std::priority_queue<move*> queue;
+	priority_queue<move, vector<move>, Comp> queue;
 
 	board = (int*)malloc(n*n * sizeof(int));
 	fillBoard(board, n);
@@ -176,7 +190,7 @@ int main(int argc, char *argv[])
 	//printBoard(initial->board, n);
 	//printf("lowerBound is %d \n", initial->lowerBound);
 
-	queue.push(initial);
+	queue.push(*initial);
 
 	//while (!queue.empty())
 	int j;
@@ -190,7 +204,8 @@ int main(int argc, char *argv[])
 		{
 			printBoard(currentMove->board, n);
 			exit(0);
-		}else
+		}
+		else
 		{
 			int mininumBound = 10000, i, k, chosenDirection;
 			int holeCol, holeRow;
@@ -268,24 +283,16 @@ int main(int argc, char *argv[])
 			for(i=0; i<numDirections; i++)
 			{
 				k = directions[i];
-				struct move *possibleNextMove;
-				possibleNextMove = makeAMove(k, currentMove);
-				printf("lowerboud when move %d is %d \n", k, possibleNextMove->lowerBound);
-				printBoard(possibleNextMove->board, n);
-				printf("Manhattan when move %d is %d \n", k, getBoardManhattan(possibleNextMove->board, n));
-				if(possibleNextMove->lowerBound < mininumBound){
-					nextMove = possibleNextMove;
-					mininumBound = possibleNextMove->lowerBound;
-					chosenDirection = k;
-					//printf("Manhattan Distance is %d \n", getBoardManhattan(nextMove->board, n));
-				}else{
-					freeMove(possibleNextMove);
-				}				
+				struct move *nextMove;
+				nextMove = makeAMove(k, currentMove);
+
+				// DEBUG
+				printf("lowerboud when move %d is %d \n", k, nextMove->lowerBound);
+				printBoard(nextMove->board, n);
+				printf("Manhattan when move %d is %d \n", k, getBoardManhattan(nextMove->board, n));
+
+				queue.push(*nextMove);
 			}
-			printf("lowerBound Finalized is %d \n", nextMove->lowerBound);
-			printf("chosenDirection is %d \n", chosenDirection);
-			printBoard(nextMove->board, n);
-			queue.push(nextMove);
 		}
 		freeMove(currentMove);
 	}
@@ -298,3 +305,18 @@ int main(int argc, char *argv[])
 // junk
 
 //std::cout << queue.top() << std::endl;
+
+
+				
+				if(possibleNextMove->lowerBound < mininumBound){
+					nextMove = possibleNextMove;
+					mininumBound = possibleNextMove->lowerBound;
+					chosenDirection = k;
+					//printf("Manhattan Distance is %d \n", getBoardManhattan(nextMove->board, n));
+				}else{
+					freeMove(possibleNextMove);
+				}
+
+				printf("lowerBound Finalized is %d \n", nextMove->lowerBound);
+				printf("chosenDirection is %d \n", chosenDirection);
+				printBoard(nextMove->board, n);			
