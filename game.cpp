@@ -5,7 +5,7 @@
 #include <queue>		// for priority queue
 using namespace std;
 
-struct move
+struct state
 {
 	//Call(int *board, int dim, int moveSoFar, int lowerBound) :
     //CallBoard(board), CallDim(dim), CallLowerBound(lowerBound) {}
@@ -17,7 +17,7 @@ struct move
 };
 
 struct Comp{
-	bool operator<(const move& lhs, const move& rhs)
+	bool operator<(const state& lhs, const state& rhs)
 	{
 		return lhs.lowerBound < rhs.lowerBound;
 	}
@@ -311,15 +311,15 @@ int main(int argc, char *argv[])
 
 
 				
-				if(possibleNextMove->lowerBound < mininumBound){
-					nextMove = possibleNextMove;
-					mininumBound = possibleNextMove->lowerBound;
-					chosenDirection = k;
-					//printf("Manhattan Distance is %d \n", getBoardManhattan(nextMove->board, n));
-				}else{
-					freeMove(possibleNextMove);
-				}
+			//	if(possibleNextMove->lowerBound < mininumBound){
+			//		nextMove = possibleNextMove;
+			//		mininumBound = possibleNextMove->lowerBound;
+			//		chosenDirection = k;
+			//		//printf("Manhattan Distance is %d \n", getBoardManhattan(nextMove->board, n));
+			//	}else{
+			//		freeMove(possibleNextMove);
+			//	}
 
-				printf("lowerBound Finalized is %d \n", nextMove->lowerBound);
-				printf("chosenDirection is %d \n", chosenDirection);
-				printBoard(nextMove->board, n);			
+			//	printf("lowerBound Finalized is %d \n", nextMove->lowerBound);
+			//	printf("chosenDirection is %d \n", chosenDirection);
+			//	printBoard(nextMove->board, n);			
