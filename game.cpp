@@ -29,6 +29,11 @@ struct state
 //	}
 //};
 
+void printState(struct state *move)
+{
+    printf("lowerBound: %d \n", move->lowerBound);
+}
+
 
 void shuffleBoard(int *array, int n)
 {
@@ -175,20 +180,21 @@ state* makeAMove(int direction, state *currentMove)
 
 int setHoleDirection(int *directions, int holeRow, int holeCol, int n)
 {
+    /* 0 is up, 1 is down, 2 is left, 3 is right*/
     int numDirections;
 
     if(holeRow == 0){
-        if(holeCol == 0){
+        if(holeCol == 0){ //upper left
             numDirections = 2;
             directions = (int*)malloc(numDirections * sizeof(int));
             directions[0] = 1;
             directions[1] = 3;
-        }else if(holeCol == n-1){
+        }else if(holeCol == n-1){ //upper right
             numDirections = 2;
             directions = (int*)malloc(numDirections * sizeof(int));
             directions[0] = 1;
             directions[1] = 2;
-        }else{
+        }else{ // upper middle
             numDirections = 3;
             directions = (int*)malloc(numDirections * sizeof(int));
             directions[0] = 1;
@@ -196,17 +202,17 @@ int setHoleDirection(int *directions, int holeRow, int holeCol, int n)
             directions[2] = 3;
         }
     }else if(holeRow == n-1){
-        if(holeCol == 0){
+        if(holeCol == 0){ //buttom left
             numDirections = 2;
             directions = (int*)malloc(numDirections * sizeof(int));
             directions[0] = 0;
             directions[1] = 3;
-        }else if(holeCol == n-1){
+        }else if(holeCol == n-1){ //buttom right
             numDirections = 2;
             directions = (int*)malloc(numDirections * sizeof(int));
             directions[0] = 0;
             directions[1] = 2;
-        }else{
+        }else{ //buttom middle
             numDirections = 3;
             directions = (int*)malloc(numDirections * sizeof(int));
             directions[0] = 0;
@@ -214,19 +220,19 @@ int setHoleDirection(int *directions, int holeRow, int holeCol, int n)
             directions[2] = 3;
         }
     }else{
-        if(holeCol == 0){
+        if(holeCol == 0){ //middle left
             numDirections = 3;
             directions = (int*)malloc(numDirections * sizeof(int));
             directions[0] = 0;
             directions[1] = 1;
             directions[2] = 3;
-        }else if(holeCol == n-1){
+        }else if(holeCol == n-1){ //middle right
             numDirections = 3;
             directions = (int*)malloc(numDirections * sizeof(int));
             directions[0] = 0;
             directions[1] = 1;
             directions[2] = 2;
-        }else{
+        }else{ //middle middle
             numDirections = 4;
             directions = (int*)malloc(numDirections * sizeof(int));
             directions[0] = 0;
@@ -276,7 +282,12 @@ int main(int argc, char *argv[])
 		*currentMove = queue.top();
 		struct state *nextMove;
 		queue.pop();
-		if(checkResult(currentMove->board, n))
+
+        // DEBUG - check the lowerbound
+        //printf("Checking currentMove \n");
+        //printState(currentMove);
+
+		if(checkResult(currentMove->board, n)) //finished
 		{
 			printBoard(currentMove->board, n);
 			exit(0);
