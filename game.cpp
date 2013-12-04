@@ -29,11 +29,6 @@ struct state
 //	}
 //};
 
-void printState(struct state *move)
-{
-    printf("lowerBound: %d \n", move->lowerBound);
-}
-
 
 void shuffleBoard(int *array, int n)
 {
@@ -67,6 +62,14 @@ void printBoard(int *board, int dim)
 	}
 }
 
+void printState(struct state *move)
+{
+    printf("lowerBound: %d \n", move->lowerBound);
+    printBoard(move->board, move->dim);
+
+}
+
+
 int getManhattan(int i, int dim, int sourceRow, int sourceCol)
 {
 	int targetRow = (i-1) / dim;
@@ -92,17 +95,23 @@ int getBoardManhattan(int *board, int dim)
 bool checkResult(int *board, int dim)
 {
 	int i, j;
-	bool correct = true;
+	//bool correct = true;
 	for(i=0; i<dim; i++){
 		for(j=0; j<dim; j++){
-			if(i != dim-1 && j != dim-1){
-				if(board[dim*i+j] != dim*i+j+1){
-					correct = false;
-				}
-			}
+			//if(i != dim-1 && j != dim-1){
+			//	if(board[dim*i+j] != dim*i+j+1){
+			//		//correct = false;
+            //        return false;
+			//	}
+			//}
+
+            if(board[dim*i+j] != dim*i+j+1){
+                return false;
+            }
 		}
 	}
-	return correct;
+	//return correct;
+    return true;
 }
 
 void setState(state *newMove, int *board, int dim, int moveSoFar)
@@ -113,7 +122,7 @@ void setState(state *newMove, int *board, int dim, int moveSoFar)
 	newMove->lowerBound = moveSoFar + getBoardManhattan(board, dim);
 }
 
-void freeMove(state *Move)
+void freeState(state *Move)
 {
 	free(Move->board);
 	free(Move);
@@ -167,6 +176,10 @@ int* moveHole(int direction, int *board, int dim)
 	{
 		printf("Error moving at direction %d \n", direction);
 	}
+
+    //printf("New Board: \n");
+    //printBoard(newBoard, dim);
+
 	return newBoard;
 }
 
@@ -244,6 +257,23 @@ int setHoleDirection(int *directions, int holeRow, int holeCol, int n)
     return numDirections;
 }
 
+void printPQueue(priority_queue<state> queue)
+{
+	priority_queue<state> queueCopy;
+    printf("------Prority Queue Start-----------\n");
+	struct state *currentState  = (state*)malloc(sizeof(struct state));
+    while (!queue.empty())
+    {
+        *currentState = queue.top();
+        queue.pop();
+        printState(currentState);
+        queueCopy.push(*currentState); //put it to copy after print
+    }
+    printf("------Prority Queue End-----------\n");
+
+    queue = queueCopy;
+}
+
 int main(int argc, char *argv[])
 {
 	int n = 3;
@@ -276,9 +306,12 @@ int main(int argc, char *argv[])
 	////while (!queue.empty())
 
 	int j;
-	for(j=0; j<5; j++)
+	//for(j=0; j<5; j++)
+	while (!queue.empty())
 	{
+        j++;
 		printf("++++++++++ iteration %d ++++++++++++\n", j);
+        //printPQueue(queue);
 		*currentMove = queue.top();
 		struct state *nextMove;
 		queue.pop();
@@ -291,6 +324,7 @@ int main(int argc, char *argv[])
 		{
 			printBoard(currentMove->board, n);
 			exit(0);
+            //break;
 		}
 		else
 		{
@@ -318,7 +352,7 @@ int main(int argc, char *argv[])
 			for(i=0; i<numDirections; i++)
 			{
 				k = directions[i];
-                printf("Direction %d\n", k);
+                //printf("Direction %d\n", k);
 				struct state *nextMove;
 				nextMove = makeAMove(k, currentMove);
 
@@ -330,9 +364,11 @@ int main(int argc, char *argv[])
 
 				queue.push(*nextMove);
 			}
+            free(directions);
 		}
-		freeMove(currentMove);
 	}
+	freeState(currentMove);
+	freeState(initial);
 
 	//system("pause");
 
