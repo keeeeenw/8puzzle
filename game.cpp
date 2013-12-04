@@ -99,7 +99,7 @@ bool checkResult(int *board, int dim)
 	return correct;
 }
 
-void setMove(state *newMove, int *board, int dim, int moveSoFar)
+void setState(state *newMove, int *board, int dim, int moveSoFar)
 {
 	newMove->board = board;
 	newMove->dim = dim;
@@ -167,7 +167,7 @@ int* moveHole(int direction, int *board, int dim)
 state* makeAMove(int direction, state *currentMove)
 {
 	struct state *nextMove = (state*)malloc(sizeof(struct state));
-	setMove(nextMove, moveHole(direction, currentMove->board, currentMove->dim), 
+	setState(nextMove, moveHole(direction, currentMove->board, currentMove->dim), 
 		currentMove->dim, currentMove->moveSoFar + 1);
 	return nextMove;
 }
@@ -177,13 +177,13 @@ int main(int argc, char *argv[])
 	int n = 3;
 	int *board;
 	int *bestSolution;
-	state *currentMove;
-
-	srand(time(NULL));
+	struct state *currentMove  = (state*)malloc(sizeof(struct state));
 
 	//priority_queue<state, vector<state>, Comp> queue;
 	priority_queue<state> queue;
 
+    //building board
+	srand(time(NULL));
 	board = (int*)malloc(n*n * sizeof(int));
 	fillBoard(board, n);
 	shuffleBoard(board, n*n);
@@ -193,15 +193,16 @@ int main(int argc, char *argv[])
 	// printf("Manhattan Distance is %d \n", getBoardManhattan(board, n));
 
 	struct state *initial = (state*)malloc(sizeof(struct state));
-	setMove(initial, board, n, 0);
+	setState(initial, board, n, 0);
 
 	// DEBUG
 	//printBoard(initial->board, n);
-	//printf("lowerBound is %d \n", initial->lowerBound);
+	printf("lowerBound is %d \n", initial->lowerBound);
 
 	queue.push(*initial);
 
-	//while (!queue.empty())
+	////while (!queue.empty())
+
 	int j;
 	for(j=0; j<5; j++)
 	{
@@ -306,7 +307,7 @@ int main(int argc, char *argv[])
 		freeMove(currentMove);
 	}
 
-	system("pause");
+	//system("pause");
 
 	return 0;
 }
