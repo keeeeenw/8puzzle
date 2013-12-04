@@ -186,17 +186,17 @@ int setHoleDirection(int *directions, int holeRow, int holeCol, int n)
     if(holeRow == 0){
         if(holeCol == 0){ //upper left
             numDirections = 2;
-            directions = (int*)malloc(numDirections * sizeof(int));
+            // directions = (int*)malloc(numDirections * sizeof(int));
             directions[0] = 1;
             directions[1] = 3;
         }else if(holeCol == n-1){ //upper right
             numDirections = 2;
-            directions = (int*)malloc(numDirections * sizeof(int));
+            // directions = (int*)malloc(numDirections * sizeof(int));
             directions[0] = 1;
             directions[1] = 2;
         }else{ // upper middle
             numDirections = 3;
-            directions = (int*)malloc(numDirections * sizeof(int));
+            // directions = (int*)malloc(numDirections * sizeof(int));
             directions[0] = 1;
             directions[1] = 2;
             directions[2] = 3;
@@ -204,17 +204,17 @@ int setHoleDirection(int *directions, int holeRow, int holeCol, int n)
     }else if(holeRow == n-1){
         if(holeCol == 0){ //buttom left
             numDirections = 2;
-            directions = (int*)malloc(numDirections * sizeof(int));
+            // directions = (int*)malloc(numDirections * sizeof(int));
             directions[0] = 0;
             directions[1] = 3;
         }else if(holeCol == n-1){ //buttom right
             numDirections = 2;
-            directions = (int*)malloc(numDirections * sizeof(int));
+            // directions = (int*)malloc(numDirections * sizeof(int));
             directions[0] = 0;
             directions[1] = 2;
         }else{ //buttom middle
             numDirections = 3;
-            directions = (int*)malloc(numDirections * sizeof(int));
+            // directions = (int*)malloc(numDirections * sizeof(int));
             directions[0] = 0;
             directions[1] = 2;
             directions[2] = 3;
@@ -222,19 +222,19 @@ int setHoleDirection(int *directions, int holeRow, int holeCol, int n)
     }else{
         if(holeCol == 0){ //middle left
             numDirections = 3;
-            directions = (int*)malloc(numDirections * sizeof(int));
+            // directions = (int*)malloc(numDirections * sizeof(int));
             directions[0] = 0;
             directions[1] = 1;
             directions[2] = 3;
         }else if(holeCol == n-1){ //middle right
             numDirections = 3;
-            directions = (int*)malloc(numDirections * sizeof(int));
+            // directions = (int*)malloc(numDirections * sizeof(int));
             directions[0] = 0;
             directions[1] = 1;
             directions[2] = 2;
         }else{ //middle middle
             numDirections = 4;
-            directions = (int*)malloc(numDirections * sizeof(int));
+            // directions = (int*)malloc(numDirections * sizeof(int));
             directions[0] = 0;
             directions[1] = 1;
             directions[2] = 2;
@@ -278,7 +278,7 @@ int main(int argc, char *argv[])
 	int j;
 	for(j=0; j<5; j++)
 	{
-		printf("iteration %d \n", j);
+		printf("++++++++++ iteration %d ++++++++++++\n", j);
 		*currentMove = queue.top();
 		struct state *nextMove;
 		queue.pop();
@@ -310,18 +310,23 @@ int main(int argc, char *argv[])
             int *directions = (int*)malloc(numDirections * sizeof(int));
             numDirections = setHoleDirection(directions, holeRow, holeCol, n);
 
+            // DEBUG
+            printf("Current Board: \n");
+			printBoard(currentMove->board, n);
+
             // For each direction, find the nextMove
 			for(i=0; i<numDirections; i++)
 			{
 				k = directions[i];
+                printf("Direction %d\n", k);
 				struct state *nextMove;
 				nextMove = makeAMove(k, currentMove);
 
 				// DEBUG
-                printf("Info on next possible move \n");
-				printBoard(nextMove->board, n);
-				printf("move direction %d, lowerboud %d \n", k, nextMove->lowerBound);
-				printf("move direction %d, Manhattan total %d \n", k, getBoardManhattan(nextMove->board, n));
+                //printf("Info on next possible move \n");
+				//printBoard(nextMove->board, n);
+				//printf("move direction %d, lowerboud %d \n", k, nextMove->lowerBound);
+				//printf("move direction %d, Manhattan total %d \n", k, getBoardManhattan(nextMove->board, n));
 
 				queue.push(*nextMove);
 			}
