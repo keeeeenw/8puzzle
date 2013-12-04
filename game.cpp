@@ -15,18 +15,19 @@ struct state
 	int moveSoFar;
 	int lowerBound;
 
+    //use friend so we can compare the two states
 	friend bool operator<(const state& lhs, const state& rhs)
 	{
 		return lhs.lowerBound > rhs.lowerBound;
 	}
 };
 
-struct Comp{
-	friend bool operator<(const state& lhs, const state& rhs)
-	{
-		return lhs.lowerBound > rhs.lowerBound;
-	}
-};
+//struct Comp{
+//	friend bool operator<(const state& lhs, const state& rhs)
+//	{
+//		return lhs.lowerBound > rhs.lowerBound;
+//	}
+//};
 
 
 void shuffleBoard(int *array, int n)
@@ -172,6 +173,71 @@ state* makeAMove(int direction, state *currentMove)
 	return nextMove;
 }
 
+int setHoleDirection(int *directions, int holeRow, int holeCol, int n)
+{
+    int numDirections;
+
+    if(holeRow == 0){
+        if(holeCol == 0){
+            numDirections = 2;
+            directions = (int*)malloc(numDirections * sizeof(int));
+            directions[0] = 1;
+            directions[1] = 3;
+        }else if(holeCol == n-1){
+            numDirections = 2;
+            directions = (int*)malloc(numDirections * sizeof(int));
+            directions[0] = 1;
+            directions[1] = 2;
+        }else{
+            numDirections = 3;
+            directions = (int*)malloc(numDirections * sizeof(int));
+            directions[0] = 1;
+            directions[1] = 2;
+            directions[2] = 3;
+        }
+    }else if(holeRow == n-1){
+        if(holeCol == 0){
+            numDirections = 2;
+            directions = (int*)malloc(numDirections * sizeof(int));
+            directions[0] = 0;
+            directions[1] = 3;
+        }else if(holeCol == n-1){
+            numDirections = 2;
+            directions = (int*)malloc(numDirections * sizeof(int));
+            directions[0] = 0;
+            directions[1] = 2;
+        }else{
+            numDirections = 3;
+            directions = (int*)malloc(numDirections * sizeof(int));
+            directions[0] = 0;
+            directions[1] = 2;
+            directions[2] = 3;
+        }
+    }else{
+        if(holeCol == 0){
+            numDirections = 3;
+            directions = (int*)malloc(numDirections * sizeof(int));
+            directions[0] = 0;
+            directions[1] = 1;
+            directions[2] = 3;
+        }else if(holeCol == n-1){
+            numDirections = 3;
+            directions = (int*)malloc(numDirections * sizeof(int));
+            directions[0] = 0;
+            directions[1] = 1;
+            directions[2] = 2;
+        }else{
+            numDirections = 4;
+            directions = (int*)malloc(numDirections * sizeof(int));
+            directions[0] = 0;
+            directions[1] = 1;
+            directions[2] = 2;
+            directions[3] = 3;
+        }
+    }
+    return numDirections;
+}
+
 int main(int argc, char *argv[])
 {
 	int n = 3;
@@ -228,68 +294,12 @@ int main(int argc, char *argv[])
 				}
 			}
 
-			int numDirections;
-			int *directions;
+            // Find directions of the moves based on the location of the hole
+            int numDirections = 4; //at most 4 directions
+            int *directions = (int*)malloc(numDirections * sizeof(int));
+            numDirections = setHoleDirection(directions, holeRow, holeCol, n);
 
-			if(holeRow == 0){
-				if(holeCol == 0){
-					numDirections = 2;
-					directions = (int*)malloc(numDirections * sizeof(int));
-					directions[0] = 1;
-					directions[1] = 3;
-				}else if(holeCol == n-1){
-					numDirections = 2;
-					directions = (int*)malloc(numDirections * sizeof(int));
-					directions[0] = 1;
-					directions[1] = 2;
-				}else{
-					numDirections = 3;
-					directions = (int*)malloc(numDirections * sizeof(int));
-					directions[0] = 1;
-					directions[1] = 2;
-					directions[2] = 3;
-				}
-			}else if(holeRow == n-1){
-				if(holeCol == 0){
-					numDirections = 2;
-					directions = (int*)malloc(numDirections * sizeof(int));
-					directions[0] = 0;
-					directions[1] = 3;
-				}else if(holeCol == n-1){
-					numDirections = 2;
-					directions = (int*)malloc(numDirections * sizeof(int));
-					directions[0] = 0;
-					directions[1] = 2;
-				}else{
-					numDirections = 3;
-					directions = (int*)malloc(numDirections * sizeof(int));
-					directions[0] = 0;
-					directions[1] = 2;
-					directions[2] = 3;
-				}
-			}else{
-				if(holeCol == 0){
-					numDirections = 3;
-					directions = (int*)malloc(numDirections * sizeof(int));
-					directions[0] = 0;
-					directions[1] = 1;
-					directions[2] = 3;
-				}else if(holeCol == n-1){
-					numDirections = 3;
-					directions = (int*)malloc(numDirections * sizeof(int));
-					directions[0] = 0;
-					directions[1] = 1;
-					directions[2] = 2;
-				}else{
-					numDirections = 4;
-					directions = (int*)malloc(numDirections * sizeof(int));
-					directions[0] = 0;
-					directions[1] = 1;
-					directions[2] = 2;
-					directions[3] = 3;
-				}
-			}
-
+            // For each direction, find the nextMove
 			for(i=0; i<numDirections; i++)
 			{
 				k = directions[i];
@@ -297,9 +307,10 @@ int main(int argc, char *argv[])
 				nextMove = makeAMove(k, currentMove);
 
 				// DEBUG
-				printf("lowerboud when move %d is %d \n", k, nextMove->lowerBound);
+                printf("Info on next possible move \n");
 				printBoard(nextMove->board, n);
-				printf("Manhattan when move %d is %d \n", k, getBoardManhattan(nextMove->board, n));
+				printf("move direction %d, lowerboud %d \n", k, nextMove->lowerBound);
+				printf("move direction %d, Manhattan total %d \n", k, getBoardManhattan(nextMove->board, n));
 
 				queue.push(*nextMove);
 			}
