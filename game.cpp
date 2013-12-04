@@ -95,23 +95,34 @@ int getBoardManhattan(int *board, int dim)
 bool checkResult(int *board, int dim)
 {
 	int i, j;
-	//bool correct = true;
-	for(i=0; i<dim; i++){
-		for(j=0; j<dim; j++){
-			//if(i != dim-1 && j != dim-1){
-			//	if(board[dim*i+j] != dim*i+j+1){
-			//		//correct = false;
-            //        return false;
-			//	}
-			//}
-
-            if(board[dim*i+j] != dim*i+j+1){
+    for(i=0; i<dim*dim; i++){
+        //solution[i] = i+1;
+        if(i == dim*dim-1){
+            if(board[i]!=0)
                 return false;
-            }
-		}
-	}
-	//return correct;
+        } else {
+            if(board[i] != i+1)
+                return false;
+        }
+    }
+
     return true;
+    
+	//bool correct = true;
+	//for(i=0; i<dim; i++){
+	//	for(j=0; j<dim; j++){
+	//		//if(i != dim-1 && j != dim-1){
+	//		//	if(board[dim*i+j] != dim*i+j+1){
+	//		//		//correct = false;
+    //        //        return false;
+	//		//	}
+	//		//}
+    //        //if(board[dim*i+j] != dim*(i+1)+j+1){
+    //        //    return false;
+    //        //}
+	//	}
+	//}
+	//return correct;
 }
 
 void setState(state *newMove, int *board, int dim, int moveSoFar)
@@ -276,7 +287,7 @@ void printPQueue(priority_queue<state> queue)
 
 int main(int argc, char *argv[])
 {
-	int n = 3;
+	int n = 2;
 	int *board;
 	int *bestSolution;
 	struct state *currentMove  = (state*)malloc(sizeof(struct state));
@@ -306,8 +317,8 @@ int main(int argc, char *argv[])
 	////while (!queue.empty())
 
 	int j;
-	//for(j=0; j<5; j++)
-	while (!queue.empty())
+	//for(j=0; j<100; j++)
+    while (!queue.empty())
 	{
         j++;
 		printf("++++++++++ iteration %d ++++++++++++\n", j);
@@ -378,9 +389,6 @@ int main(int argc, char *argv[])
 // junk
 
 //std::cout << queue.top() << std::endl;
-
-
-				
 			//	if(possibleNextMove->lowerBound < mininumBound){
 			//		nextMove = possibleNextMove;
 			//		mininumBound = possibleNextMove->lowerBound;
