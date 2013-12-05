@@ -285,6 +285,37 @@ void printPQueue(priority_queue<state> queue)
     queue = queueCopy;
 }
 
+bool compareBoard(int *board1, int *board2, int dim)
+{
+    int i;
+    for(i=0;i<dim*dim;i++){
+        if(board1[i] != board2[i])
+            return false;
+    }
+    return true;
+}
+
+bool pqueueContain(priority_queue<state> queue, struct state *newState, int dim)
+{
+    bool flag = false; //true it the queue contains newState
+	priority_queue<state> queueCopy;
+	struct state *currentState  = (state*)malloc(sizeof(struct state));
+    while (!queue.empty())
+    {
+        *currentState = queue.top();
+        queue.pop();
+        //compare currentState with newState
+        if(flag) //we do not want to reset it if it is true already
+            flag = compareBoard(currentState->board, newState->board, dim);
+        queueCopy.push(*currentState); //put it to copy after print
+        
+    }
+
+    queue = queueCopy;
+
+    return flag;
+}
+
 int main(int argc, char *argv[])
 {
 	int n = 2;
@@ -373,7 +404,10 @@ int main(int argc, char *argv[])
 				//printf("move direction %d, lowerboud %d \n", k, nextMove->lowerBound);
 				//printf("move direction %d, Manhattan total %d \n", k, getBoardManhattan(nextMove->board, n));
 
-				queue.push(*nextMove);
+                // we need to make sure that we do not add duplicate
+                // we need to keep track of the board we worked on 
+                if(!pqueueContain(queue, nextMove, n))
+				    queue.push(*nextMove);
 			}
             free(directions);
 		}
