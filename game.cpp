@@ -66,7 +66,6 @@ void printState(struct state *move)
 {
     printf("lowerBound: %d \n", move->lowerBound);
     printBoard(move->board, move->dim);
-
 }
 
 
@@ -316,9 +315,60 @@ bool pqueueContain(priority_queue<state> queue, struct state *newState, int dim)
     return flag;
 }
 
+bool isSolvable(int *board, int dim)
+{
+	int i, j, zeroPos, blankRow, inversions;
+	int size = dim*dim;
+	bool solvable = false;
+
+	// Create a copy of the original board
+	int *newBoard;
+	newBoard = (int*)malloc(sizeof(size));
+	memcpy(newBoard, board, size);
+	
+	// get the position of the zero element
+	for(i=0; i<size; i++){
+		if(newBoard[i]==0){
+			zeroPos = i;
+		}
+	}
+
+	// get the row where zero is located
+	blankRow = zeroPos/dim;
+
+	// delete zero element
+	for (i=zeroPos; i<size-1; i++){
+		newBoard[i] = newBoard[i+1];
+	}
+
+	// get num of inversions of the newBoard
+	for(i=0; i<size-2; i++){
+		for(j=i+1; j<size-1; j++){
+			if(newBoard[i] > newBoard[j]){
+				inversions++;
+			} 
+		}
+	}
+
+	// check base on inversion rules
+	if(dim % 2 == 0){
+		if((blankRow+inversions) % 2 != 0){
+			solvable = true;
+		}
+	}else{
+		if(inversions % 2 == 0){
+			solvable = true;
+		}
+	}
+
+	free(newBoard);
+
+	return solvable;
+}
+
 int main(int argc, char *argv[])
 {
-	int n = 2;
+	int n = 3;
 	int *board;
 	int *bestSolution;
 	struct state *currentMove  = (state*)malloc(sizeof(struct state));
@@ -331,7 +381,20 @@ int main(int argc, char *argv[])
 	board = (int*)malloc(n*n * sizeof(int));
 	fillBoard(board, n);
 	shuffleBoard(board, n*n);
-	printBoard(board, n);
+
+	//board[0] = 1;
+	//board[1] = 5;
+	//board[2] = 2;
+	//board[3] = 4;
+	//board[4] = 3;
+	//board[5] = 0;
+	//board[6] = 7;
+	//board[7] = 8;
+	//board[8] = 6;
+
+	while(!isSolvable(board, n)){
+		shuffleBoard(board, n*n);
+	}
 
 	// DEBUG
 	// printf("Manhattan Distance is %d \n", getBoardManhattan(board, n));
@@ -348,11 +411,9 @@ int main(int argc, char *argv[])
 	////while (!queue.empty())
 
 	int j;
-	//for(j=0; j<100; j++)
+	//for(j=0; j<100000; j++)
     while (!queue.empty())
 	{
-        j++;
-		printf("++++++++++ iteration %d ++++++++++++\n", j);
         //printPQueue(queue);
 		*currentMove = queue.top();
 		struct state *nextMove;
@@ -387,8 +448,13 @@ int main(int argc, char *argv[])
             numDirections = setHoleDirection(directions, holeRow, holeCol, n);
 
             // DEBUG
-            printf("Current Board: \n");
-			printBoard(currentMove->board, n);
+            j++;
+            if(j % 100 == 0){
+            	printf("++++++++++ iteration %d ++++++++++++\n", j);
+            	printf("Current Board: \n");
+            	printf("lowerBound is %d and moveSoFar is %d \n", currentMove->lowerBound, currentMove->moveSoFar);
+				printBoard(currentMove->board, n);
+            }
 
             // For each direction, find the nextMove
 			for(i=0; i<numDirections; i++)
@@ -397,7 +463,8 @@ int main(int argc, char *argv[])
                 //printf("Direction %d\n", k);
 				struct state *nextMove;
 				nextMove = makeAMove(k, currentMove);
-
+				//printf("lowerBound is %d and moveSoFar is %d \n", nextMove->lowerBound, nextMove->moveSoFar);
+				//printBoard(nextMove->board, n);		
 				// DEBUG
                 //printf("Info on next possible move \n");
 				//printBoard(nextMove->board, n);
