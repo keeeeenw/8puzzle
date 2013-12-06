@@ -403,7 +403,8 @@ int main(int argc, char *argv[])
 	setState(initial, board, n, 0);
 
 	// DEBUG
-	//printBoard(initial->board, n);
+    printf("Problem Starts. Here is our board: \n");
+	printBoard(initial->board, n);
 	printf("lowerBound is %d \n", initial->lowerBound);
 
 	queue.push(*initial);
@@ -454,6 +455,7 @@ int main(int argc, char *argv[])
             	printf("Current Board: \n");
             	printf("lowerBound is %d and moveSoFar is %d \n", currentMove->lowerBound, currentMove->moveSoFar);
 				printBoard(currentMove->board, n);
+                std::cout << "pq size: " << queue.size() << '\n';
             }
 
             // For each direction, find the nextMove
@@ -471,16 +473,16 @@ int main(int argc, char *argv[])
 				//printf("move direction %d, lowerboud %d \n", k, nextMove->lowerBound);
 				//printf("move direction %d, Manhattan total %d \n", k, getBoardManhattan(nextMove->board, n));
 
-                // we need to make sure that we do not add duplicate
+                // we need to make sure that we do not add duplicate?
                 // we need to keep track of the board we worked on 
-                if(!pqueueContain(queue, nextMove, n))
-				    queue.push(*nextMove);
+                //if(!pqueueContain(queue, nextMove, n))
+				queue.push(*nextMove);
 			}
             free(directions);
 		}
 	}
-	freeState(currentMove);
-	freeState(initial);
+    freeState(currentMove);
+    freeState(initial);
 
 	//system("pause");
 
