@@ -8,27 +8,19 @@ using namespace std;
 struct state
 {
 	//Call(int *board, int dim, int moveSoFar, int lowerBound) :
-    //CallBoard(board), CallDim(dim), CallLowerBound(lowerBound) {}
+	//CallBoard(board), CallDim(dim), CallLowerBound(lowerBound) {}
 
 	int *board;
 	int dim;
 	int moveSoFar;
 	int lowerBound;
 
-    //use friend so we can compare the two states
+	//use friend so we can compare the two states
 	friend bool operator<(const state& lhs, const state& rhs)
 	{
 		return lhs.lowerBound > rhs.lowerBound;
 	}
 };
-
-//struct Comp{
-//	friend bool operator<(const state& lhs, const state& rhs)
-//	{
-//		return lhs.lowerBound > rhs.lowerBound;
-//	}
-//};
-
 
 void shuffleBoard(int *array, int n)
 {
@@ -64,10 +56,9 @@ void printBoard(int *board, int dim)
 
 void printState(struct state *move)
 {
-    printf("lowerBound: %d \n", move->lowerBound);
-    printBoard(move->board, move->dim);
+	printf("lowerBound: %d \n", move->lowerBound);
+	printBoard(move->board, move->dim);
 }
-
 
 int getManhattan(int i, int dim, int sourceRow, int sourceCol)
 {
@@ -81,11 +72,11 @@ int getBoardManhattan(int *board, int dim)
 	int i, j, sum=0, temp, item;
 	for(i=0; i<dim; i++){
 		for(j=0; j<dim; j++){
-            item = board[dim*i+j];
-            if(item != 0){
-                temp = getManhattan(item, dim, i, j);
-			    sum = sum + temp;
-            }
+			item = board[dim*i+j];
+			if(item != 0){
+				temp = getManhattan(item, dim, i, j);
+				sum = sum + temp;
+			}
 		}
 	}
 	return sum;
@@ -94,31 +85,31 @@ int getBoardManhattan(int *board, int dim)
 bool checkResult(int *board, int dim)
 {
 	int i, j;
-    for(i=0; i<dim*dim; i++){
-        //solution[i] = i+1;
-        if(i == dim*dim-1){
-            if(board[i]!=0)
-                return false;
-        } else {
-            if(board[i] != i+1)
-                return false;
-        }
-    }
+	for(i=0; i<dim*dim; i++){
+		//solution[i] = i+1;
+		if(i == dim*dim-1){
+			if(board[i]!=0)
+				return false;
+		} else {
+			if(board[i] != i+1)
+				return false;
+		}
+	}
 
-    return true;
-    
+	return true;
+	
 	//bool correct = true;
 	//for(i=0; i<dim; i++){
 	//	for(j=0; j<dim; j++){
 	//		//if(i != dim-1 && j != dim-1){
 	//		//	if(board[dim*i+j] != dim*i+j+1){
 	//		//		//correct = false;
-    //        //        return false;
+	//        //        return false;
 	//		//	}
 	//		//}
-    //        //if(board[dim*i+j] != dim*(i+1)+j+1){
-    //        //    return false;
-    //        //}
+	//        //if(board[dim*i+j] != dim*(i+1)+j+1){
+	//        //    return false;
+	//        //}
 	//	}
 	//}
 	//return correct;
@@ -187,8 +178,8 @@ int* moveHole(int direction, int *board, int dim)
 		printf("Error moving at direction %d \n", direction);
 	}
 
-    //printf("New Board: \n");
-    //printBoard(newBoard, dim);
+	//printf("New Board: \n");
+	//printBoard(newBoard, dim);
 
 	return newBoard;
 }
@@ -203,116 +194,116 @@ state* makeAMove(int direction, state *currentMove)
 
 int setHoleDirection(int *directions, int holeRow, int holeCol, int n)
 {
-    /* 0 is up, 1 is down, 2 is left, 3 is right*/
-    int numDirections;
+	/* 0 is up, 1 is down, 2 is left, 3 is right*/
+	int numDirections;
 
-    if(holeRow == 0){
-        if(holeCol == 0){ //upper left
-            numDirections = 2;
-            // directions = (int*)malloc(numDirections * sizeof(int));
-            directions[0] = 1;
-            directions[1] = 3;
-        }else if(holeCol == n-1){ //upper right
-            numDirections = 2;
-            // directions = (int*)malloc(numDirections * sizeof(int));
-            directions[0] = 1;
-            directions[1] = 2;
-        }else{ // upper middle
-            numDirections = 3;
-            // directions = (int*)malloc(numDirections * sizeof(int));
-            directions[0] = 1;
-            directions[1] = 2;
-            directions[2] = 3;
-        }
-    }else if(holeRow == n-1){
-        if(holeCol == 0){ //buttom left
-            numDirections = 2;
-            // directions = (int*)malloc(numDirections * sizeof(int));
-            directions[0] = 0;
-            directions[1] = 3;
-        }else if(holeCol == n-1){ //buttom right
-            numDirections = 2;
-            // directions = (int*)malloc(numDirections * sizeof(int));
-            directions[0] = 0;
-            directions[1] = 2;
-        }else{ //buttom middle
-            numDirections = 3;
-            // directions = (int*)malloc(numDirections * sizeof(int));
-            directions[0] = 0;
-            directions[1] = 2;
-            directions[2] = 3;
-        }
-    }else{
-        if(holeCol == 0){ //middle left
-            numDirections = 3;
-            // directions = (int*)malloc(numDirections * sizeof(int));
-            directions[0] = 0;
-            directions[1] = 1;
-            directions[2] = 3;
-        }else if(holeCol == n-1){ //middle right
-            numDirections = 3;
-            // directions = (int*)malloc(numDirections * sizeof(int));
-            directions[0] = 0;
-            directions[1] = 1;
-            directions[2] = 2;
-        }else{ //middle middle
-            numDirections = 4;
-            // directions = (int*)malloc(numDirections * sizeof(int));
-            directions[0] = 0;
-            directions[1] = 1;
-            directions[2] = 2;
-            directions[3] = 3;
-        }
-    }
-    return numDirections;
+	if(holeRow == 0){
+		if(holeCol == 0){ //upper left
+			numDirections = 2;
+			// directions = (int*)malloc(numDirections * sizeof(int));
+			directions[0] = 1;
+			directions[1] = 3;
+		}else if(holeCol == n-1){ //upper right
+			numDirections = 2;
+			// directions = (int*)malloc(numDirections * sizeof(int));
+			directions[0] = 1;
+			directions[1] = 2;
+		}else{ // upper middle
+			numDirections = 3;
+			// directions = (int*)malloc(numDirections * sizeof(int));
+			directions[0] = 1;
+			directions[1] = 2;
+			directions[2] = 3;
+		}
+	}else if(holeRow == n-1){
+		if(holeCol == 0){ //buttom left
+			numDirections = 2;
+			// directions = (int*)malloc(numDirections * sizeof(int));
+			directions[0] = 0;
+			directions[1] = 3;
+		}else if(holeCol == n-1){ //buttom right
+			numDirections = 2;
+			// directions = (int*)malloc(numDirections * sizeof(int));
+			directions[0] = 0;
+			directions[1] = 2;
+		}else{ //buttom middle
+			numDirections = 3;
+			// directions = (int*)malloc(numDirections * sizeof(int));
+			directions[0] = 0;
+			directions[1] = 2;
+			directions[2] = 3;
+		}
+	}else{
+		if(holeCol == 0){ //middle left
+			numDirections = 3;
+			// directions = (int*)malloc(numDirections * sizeof(int));
+			directions[0] = 0;
+			directions[1] = 1;
+			directions[2] = 3;
+		}else if(holeCol == n-1){ //middle right
+			numDirections = 3;
+			// directions = (int*)malloc(numDirections * sizeof(int));
+			directions[0] = 0;
+			directions[1] = 1;
+			directions[2] = 2;
+		}else{ //middle middle
+			numDirections = 4;
+			// directions = (int*)malloc(numDirections * sizeof(int));
+			directions[0] = 0;
+			directions[1] = 1;
+			directions[2] = 2;
+			directions[3] = 3;
+		}
+	}
+	return numDirections;
 }
 
 void printPQueue(priority_queue<state> queue)
 {
 	priority_queue<state> queueCopy;
-    printf("------Prority Queue Start-----------\n");
+	printf("------Prority Queue Start-----------\n");
 	struct state *currentState  = (state*)malloc(sizeof(struct state));
-    while (!queue.empty())
-    {
-        *currentState = queue.top();
-        queue.pop();
-        printState(currentState);
-        queueCopy.push(*currentState); //put it to copy after print
-    }
-    printf("------Prority Queue End-----------\n");
+	while (!queue.empty())
+	{
+		*currentState = queue.top();
+		queue.pop();
+		printState(currentState);
+		queueCopy.push(*currentState); //put it to copy after print
+	}
+	printf("------Prority Queue End-----------\n");
 
-    queue = queueCopy;
+	queue = queueCopy;
 }
 
 bool compareBoard(int *board1, int *board2, int dim)
 {
-    int i;
-    for(i=0;i<dim*dim;i++){
-        if(board1[i] != board2[i])
-            return false;
-    }
-    return true;
+	int i;
+	for(i=0;i<dim*dim;i++){
+		if(board1[i] != board2[i])
+			return false;
+	}
+	return true;
 }
 
 bool pqueueContain(priority_queue<state> queue, struct state *newState, int dim)
 {
-    bool flag = false; //true it the queue contains newState
+	bool flag = false; //true it the queue contains newState
 	priority_queue<state> queueCopy;
 	struct state *currentState  = (state*)malloc(sizeof(struct state));
-    while (!queue.empty())
-    {
-        *currentState = queue.top();
-        queue.pop();
-        //compare currentState with newState
-        if(flag) //we do not want to reset it if it is true already
-            flag = compareBoard(currentState->board, newState->board, dim);
-        queueCopy.push(*currentState); //put it to copy after print
-        
-    }
+	while (!queue.empty())
+	{
+		*currentState = queue.top();
+		queue.pop();
+		//compare currentState with newState
+		if(flag) //we do not want to reset it if it is true already
+			flag = compareBoard(currentState->board, newState->board, dim);
+		queueCopy.push(*currentState); //put it to copy after print
+		
+	}
 
-    queue = queueCopy;
+	queue = queueCopy;
 
-    return flag;
+	return flag;
 }
 
 bool isSolvable(int *board, int dim)
@@ -371,26 +362,26 @@ int main(int argc, char *argv[])
 	int n = 3;
 	int *board;
 	int *bestSolution;
-	struct state *currentMove  = (state*)malloc(sizeof(struct state));
+	struct state *currentState  = (state*)malloc(sizeof(struct state));
 
 	//priority_queue<state, vector<state>, Comp> queue;
 	priority_queue<state> queue;
 
-    //building board
+	//building board
 	srand(time(NULL));
 	board = (int*)malloc(n*n * sizeof(int));
 	fillBoard(board, n);
 	shuffleBoard(board, n*n);
 
 	//board[0] = 1;
-	//board[1] = 5;
-	//board[2] = 2;
-	//board[3] = 4;
-	//board[4] = 3;
-	//board[5] = 0;
+	//board[1] = 3;
+	//board[2] = 4;
+	//board[3] = 8;
+	//board[4] = 6;
+	//board[5] = 2;
 	//board[6] = 7;
-	//board[7] = 8;
-	//board[8] = 6;
+	//board[7] = 0;
+	//board[8] = 5;
 
 	while(!isSolvable(board, n)){
 		shuffleBoard(board, n*n);
@@ -412,22 +403,22 @@ int main(int argc, char *argv[])
 
 	int j;
 	//for(j=0; j<100000; j++)
-    while (!queue.empty())
+	while (!queue.empty())
 	{
-        //printPQueue(queue);
+		//printPQueue(queue);
 		*currentMove = queue.top();
 		struct state *nextMove;
 		queue.pop();
 
-        // DEBUG - check the lowerbound
-        //printf("Checking currentMove \n");
-        //printState(currentMove);
+		// DEBUG - check the lowerbound
+		//printf("Checking currentMove \n");
+		//printState(currentMove);
 
 		if(checkResult(currentMove->board, n)) //finished
 		{
 			printBoard(currentMove->board, n);
 			exit(0);
-            //break;
+			//break;
 		}
 		else
 		{
@@ -442,48 +433,47 @@ int main(int argc, char *argv[])
 				}
 			}
 
-            // Find directions of the moves based on the location of the hole
-            int numDirections = 4; //at most 4 directions
-            int *directions = (int*)malloc(numDirections * sizeof(int));
-            numDirections = setHoleDirection(directions, holeRow, holeCol, n);
+			// Find directions of the moves based on the location of the hole
+			int numDirections = 4; //at most 4 directions
+			int *directions = (int*)malloc(numDirections * sizeof(int));
+			numDirections = setHoleDirection(directions, holeRow, holeCol, n);
 
-            // DEBUG
-            j++;
-            if(j % 100 == 0){
-            	printf("++++++++++ iteration %d ++++++++++++\n", j);
-            	printf("Current Board: \n");
-            	printf("lowerBound is %d and moveSoFar is %d \n", currentMove->lowerBound, currentMove->moveSoFar);
+			// DEBUG
+			j++;
+			if(j % 100 == 0){
+				printf("++++++++++ iteration %d ++++++++++++\n", j);
+				printf("Current Board: \n");
+				printf("lowerBound is %d and moveSoFar is %d \n", currentMove->lowerBound, currentMove->moveSoFar);
 				printBoard(currentMove->board, n);
-            }
+			}
 
-            // For each direction, find the nextMove
+			// For each direction, find the nextMove
 			for(i=0; i<numDirections; i++)
 			{
 				k = directions[i];
-                //printf("Direction %d\n", k);
+				//printf("Direction %d\n", k);
 				struct state *nextMove;
 				nextMove = makeAMove(k, currentMove);
 				//printf("lowerBound is %d and moveSoFar is %d \n", nextMove->lowerBound, nextMove->moveSoFar);
 				//printBoard(nextMove->board, n);		
 				// DEBUG
-                //printf("Info on next possible move \n");
+				//printf("Info on next possible move \n");
 				//printBoard(nextMove->board, n);
 				//printf("move direction %d, lowerboud %d \n", k, nextMove->lowerBound);
 				//printf("move direction %d, Manhattan total %d \n", k, getBoardManhattan(nextMove->board, n));
 
-                // we need to make sure that we do not add duplicate
-                // we need to keep track of the board we worked on 
-                if(!pqueueContain(queue, nextMove, n))
-				    queue.push(*nextMove);
+				// we need to make sure that we do not add duplicate
+				// we need to keep track of the board we worked on 
+				//if(!pqueueContain(queue, nextMove, n))
+				queue.push(*nextMove);
 			}
-            free(directions);
+			free(directions);
 		}
 	}
 	freeState(currentMove);
 	freeState(initial);
-
 	//system("pause");
-
+	printBoard(board, n);
 	return 0;
 }
 
