@@ -18,20 +18,6 @@ using namespace std;
 
 enum Color{ WHITE, BLACK };
 
-/*struct state
-{
-	int *board;
-	int dim;
-	int moveSoFar;
-	int lowerBound;
-
-	//use friend so we can compare the two states
-	friend bool operator<(const state& lhs, const state& rhs)
-	{
-		return lhs.lowerBound > rhs.lowerBound;
-	}
-};*/
-
 struct TOKEN
 {
 	int c;
@@ -199,7 +185,7 @@ int main(int argc, char *argv[])
 			}
 			MPI_Send(token, sizeof(struct TOKEN), MPI_BYTE, rightNeighbor, Token, 
 				MPI_COMM_WORLD);
-			color == WHITE;
+			color = WHITE;
 		}
 
 		printf("node %d here 6 \n", myRank);
