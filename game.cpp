@@ -444,14 +444,11 @@ int main(int argc, char *argv[])
 			if(j % 100 == 0){
 				printf("++++++++++ iteration %d ++++++++++++\n", j);
 				printf("Current Board: \n");
-				printf("lowerBound is %d and moveSoFar is %d \n", currentState->lowerBound, currentMove->moveSoFar);
+				printf("lowerBound is %d and moveSoFar is %d \n", currentState->lowerBound, currentState->moveSoFar);
 				printBoard(currentState->board, n);
-<<<<<<< HEAD
 			}
-=======
                 std::cout << "pq size: " << queue.size() << '\n';
             }
->>>>>>> 68a3bd4322d3d1cc400a588759dab282b3af9c4e
 
 			// For each direction, find the nextState
 			for(i=0; i<numDirections; i++)
@@ -459,37 +456,29 @@ int main(int argc, char *argv[])
 				k = directions[i];
 				//printf("Direction %d\n", k);
 				struct state *nextState;
-				nextState = makeAMove(k, currentState);
-				//printf("lowerBound is %d and moveSoFar is %d \n", nextMove->lowerBound, nextMove->moveSoFar);
-				//printBoard(nextMove->board, n);		
+				nextState = makeAState(k, currentState);
+				//printf("lowerBound is %d and moveSoFar is %d \n", nextState->lowerBound, nextState->moveSoFar);
+				//printBoard(nextState->board, n);		
 				// DEBUG
 				//printf("Info on next possible move \n");
-				//printBoard(nextMove->board, n);
-				//printf("move direction %d, lowerboud %d \n", k, nextMove->lowerBound);
-				//printf("move direction %d, Manhattan total %d \n", k, getBoardManhattan(nextMove->board, n));
+				//printBoard(nextState->board, n);
+				//printf("move direction %d, lowerboud %d \n", k, nextState->lowerBound);
+				//printf("move direction %d, Manhattan total %d \n", k, getBoardManhattan(nextState->board, n));
 
-<<<<<<< HEAD
 				// we need to make sure that we do not add duplicate
 				// we need to keep track of the board we worked on 
-				//if(!pqueueContain(queue, nextMove, n))
-=======
+				//if(!pqueueContain(queue, nextState, n))
                 // we need to make sure that we do not add duplicate?
                 // we need to keep track of the board we worked on 
-                //if(!pqueueContain(queue, nextMove, n))
->>>>>>> 68a3bd4322d3d1cc400a588759dab282b3af9c4e
+                //if(!pqueueContain(queue, nextState, n))
 				queue.push(*nextState);
 			}
 			free(directions);
 		}
 	}
-<<<<<<< HEAD
-	freeState(currentMove);
+	freeState(currentState);
 	freeState(initial);
-=======
-    freeState(currentMove);
-    freeState(initial);
 
->>>>>>> 68a3bd4322d3d1cc400a588759dab282b3af9c4e
 	//system("pause");
 	printBoard(board, n);
 	return 0;
@@ -498,15 +487,15 @@ int main(int argc, char *argv[])
 // junk
 
 //std::cout << queue.top() << std::endl;
-			//	if(possibleNextMove->lowerBound < mininumBound){
-			//		nextMove = possibleNextMove;
-			//		mininumBound = possibleNextMove->lowerBound;
+			//	if(possiblenextState->lowerBound < mininumBound){
+			//		nextState = possiblenextState;
+			//		mininumBound = possiblenextState->lowerBound;
 			//		chosenDirection = k;
-			//		//printf("Manhattan Distance is %d \n", getBoardManhattan(nextMove->board, n));
+			//		//printf("Manhattan Distance is %d \n", getBoardManhattan(nextState->board, n));
 			//	}else{
-			//		freeMove(possibleNextMove);
+			//		freeMove(possiblenextState);
 			//	}
 
-			//	printf("lowerBound Finalized is %d \n", nextMove->lowerBound);
+			//	printf("lowerBound Finalized is %d \n", nextState->lowerBound);
 			//	printf("chosenDirection is %d \n", chosenDirection);
-			//	printBoard(nextMove->board, n);			
+			//	printBoard(nextState->board, n);			
