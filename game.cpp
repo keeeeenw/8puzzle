@@ -362,7 +362,10 @@ int main(int argc, char *argv[])
 	int n = 3;
 	int *board;
 	int *bestSolution;
+	struct state *initial = (state*)malloc(sizeof(struct state));
 	struct state *currentState  = (state*)malloc(sizeof(struct state));
+	struct state *solution = (state*)malloc(sizeof(struct state));
+	struct state *nextState;
 
 	//priority_queue<state, vector<state>, Comp> queue;
 	priority_queue<state> queue;
@@ -370,18 +373,20 @@ int main(int argc, char *argv[])
 	//building board
 	srand(time(NULL));
 	board = (int*)malloc(n*n * sizeof(int));
-	fillBoard(board, n);
-	shuffleBoard(board, n*n);
+	//fillBoard(board, n);
+	//shuffleBoard(board, n*n);
 
-	//board[0] = 1;
-	//board[1] = 3;
-	//board[2] = 4;
-	//board[3] = 8;
-	//board[4] = 6;
-	//board[5] = 2;
-	//board[6] = 7;
-	//board[7] = 0;
-	//board[8] = 5;
+	
+	board[0] = 8;
+	board[1] = 7;
+	board[2] = 0;
+	board[3] = 2;
+	board[4] = 3;
+	board[5] = 6;
+	board[6] = 4;
+	board[7] = 5;
+	board[8] = 1;
+	
 
 	while(!isSolvable(board, n)){
 		shuffleBoard(board, n*n);
@@ -390,7 +395,7 @@ int main(int argc, char *argv[])
 	// DEBUG
 	// printf("Manhattan Distance is %d \n", getBoardManhattan(board, n));
 
-	struct state *initial = (state*)malloc(sizeof(struct state));
+	
 	setState(initial, board, n, 0);
 
 	// DEBUG
@@ -408,7 +413,6 @@ int main(int argc, char *argv[])
 	{
 		//printPQueue(queue);
 		*currentState = queue.top();
-		struct state *nextState;
 		queue.pop();
 
 		// DEBUG - check the lowerbound
@@ -417,9 +421,13 @@ int main(int argc, char *argv[])
 
 		if(checkResult(currentState->board, n)) //finished
 		{
-			printBoard(currentState->board, n);
-			exit(0);
-			//break;
+			*solution = *currentState;
+			printf("****************************** \n");
+			printf("The initial problem is \n");
+			printBoard(initial->board, n);
+			printf("The solution of the problem is \n");
+			printBoard(solution->board, n);
+			break;
 		}
 		else
 		{
@@ -452,17 +460,22 @@ int main(int argc, char *argv[])
 			for(i=0; i<numDirections; i++)
 			{
 				k = directions[i];
+
+				// DEBUG
 				//printf("Direction %d\n", k);
-				struct state *nextState;
 				nextState = makeAState(k, currentState);
+
+				// DEBUG
 				//printf("lowerBound is %d and moveSoFar is %d \n", nextState->lowerBound, nextState->moveSoFar);
-				//printBoard(nextState->board, n);		
+				//printBoard(nextState->board, n);
+
 				// DEBUG
 				//printf("Info on next possible move \n");
 				//printBoard(nextState->board, n);
 				//printf("move direction %d, lowerboud %d \n", k, nextState->lowerBound);
 				//printf("move direction %d, Manhattan total %d \n", k, getBoardManhattan(nextState->board, n));
 
+				// DEBUG
 				// we need to make sure that we do not add duplicate
 				// we need to keep track of the board we worked on 
 				//if(!pqueueContain(queue, nextState, n))
@@ -474,11 +487,15 @@ int main(int argc, char *argv[])
 			free(directions);
 		}
 	}
-	freeState(currentState);
+	// ????? need to free queue?
+	// printf("the length of the queue is %d \n", (int)queue.size());
+	freeState(nextState);
+	freeState(solution);
+	printBoard(currentState->board, currentState->dim);
+	// ????? not allow to free currentState, why?
+	//freeState(currentState);
 	freeState(initial);
-
-	//system("pause");
-	printBoard(board, n);
+	
 	return 0;
 }
 
