@@ -4,7 +4,21 @@
 #include <iostream>		// for CPP
 #include <queue>		// for priority queue
 #include <sys/time.h>	// for gettimeofday
-#include <mpi.h>        // for MPI routines, definitions, etc 
+#include <mpi.h>        // for MPI routines, definitions, etc
+
+struct state
+{
+	int *board;
+	int dim;
+	int moveSoFar;
+	int lowerBound;
+
+	//use friend so we can compare the two states
+	friend bool operator<(const state& lhs, const state& rhs)
+	{
+		return lhs.lowerBound > rhs.lowerBound;
+	}
+}; 
 
 void shuffleBoard(int *array, int n);
 void fillBoard(int *board, int dim);

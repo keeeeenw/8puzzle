@@ -4,7 +4,7 @@
 #include <iostream>		// for CPP
 #include <queue>		// for priority queue
 #include <sys/time.h>	// for gettimeofday
-#include <mpi.h>        // for MPI routines, definitions, etc 
+#include "mpi.h"        // for MPI routines, definitions, etc 
 using namespace std;
 
 #include "game.h"
@@ -18,7 +18,7 @@ using namespace std;
 
 enum Color{ WHITE, BLACK };
 
-struct state
+/*struct state
 {
 	int *board;
 	int dim;
@@ -30,7 +30,7 @@ struct state
 	{
 		return lhs.lowerBound > rhs.lowerBound;
 	}
-};
+};*/
 
 struct TOKEN
 {
@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 	enum Color color;					// process color (for termination detection)
 	int global_c, local_c;				// cost of global and local best solution so far
 	struct timeval lastComm;			// time of last communication
-	int msgCount						// messages sent minus messages received
+	int msgCount;						// messages sent minus messages received
 	priority_queue<state> queue;		// priority queue
 
 	MPI_Status status;
@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
 		token->color = WHITE;
 		token->count = 0;
 		// send token to next process (myRank = 1)
-		MPI_Send(token, sizeof(struct TOKEN), MPI_BYTES, 1, Token, 
+		MPI_Send(token, sizeof(struct TOKEN), MPI_BYTE, 1, Token, 
 				MPI_COMM_WORLD);
 	}
 
@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
 	{
 		
 		/****************************** BandB_Communication() ******************************/
-		bool terminationFlag = false, tokenFlag = false, unexaminedSubFlag = false;
+		int terminationFlag = 0, tokenFlag = 0, unexaminedSubFlag = 0;
 		// get the neighbors in the ring (receive from left, send to right)
 		int leftNeighbor = (myRank + numProcs - 1) / numProcs;
 		int rightNeighbor = (myRank + 1) / numProcs;
@@ -129,12 +129,12 @@ int main(int argc, char *argv[])
 		}
 
 		// check pending message with Token tag
-		MPI_Iprobe(leftNeighbor, Token, MPI_COMM_WORLD, &tokenFlag, $status);
+		MPI_Iprobe(leftNeighbor, Token, MPI_COMM_WORLD, &tokenFlag, &status);
 		if(tokenFlag)
 		{
 			// need to think about how to pass token
 			// http://stackoverflow.com/questions/5972018/
-			MPI_Recv(token, sizeof(struct TOKEN), MPI_BYTES, leftNeighbor, Token, 
+			MPI_Recv(token, sizeof(struct TOKEN), MPI_BYTE, leftNeighbor, Token, 
 				MPI_COMM_WORLD, &status);
 
 			// update token cost if local cost is smaller
@@ -145,10 +145,13 @@ int main(int argc, char *argv[])
 			}
 
 			// clear queue if best solution in queue is worse than token cost
-			if(token->c <= queue.top()->lowerBound)
+			struct state *tempState  = (state*)malloc(sizeof(struct state));
+			*tempState = queue.top();
+			if(token->c <= tempState->lowerBound)
 			{
 				queue = priority_queue<state>(); 
 			}
+			freeState(tempState);
 
 			// set global cost to token cost
 			global_c = token->c;
@@ -160,6 +163,7 @@ int main(int argc, char *argv[])
 					&& token->color == WHITE 
 					&& token->count + msgCount == 0)
 				{
+					int rank;
 					for (rank = 1; rank < numProcs; rank++) {
 						MPI_Send(0, 0, MPI_INT, rank, TERMINATION, MPI_COMM_WORLD);
 					}
@@ -178,19 +182,21 @@ int main(int argc, char *argv[])
 					token->color = BLACK;
 				token->count += msgCount;
 			}
-			MPI_Send(token, sizeof(struct TOKEN), MPI_BYTES, rightNeighbor, Token, 
+			MPI_Send(token, sizeof(struct TOKEN), MPI_BYTE, rightNeighbor, Token, 
 				MPI_COMM_WORLD);
 			color == WHITE;
 		}
 		
 		// ????? suppose to be while, how to handle?
 		// check pending message with Unexamined subproblem tag
-		MPI_Iprobe(leftNeighbor, UNEXAMINED_SUBPROBLEM, MPI_COMM_WORLD, &unexaminedSubFlag, $status);
+		MPI_Iprobe(leftNeighbor, UNEXAMINED_SUBPROBLEM, MPI_COMM_WORLD, &unexaminedSubFlag, &status);
 		while(unexaminedSubFlag)
 		{
 			struct state *tempRecvState;
-			MPI_Recv(&tempRecvState, 1, dataState, leftNeighbor, UNEXAMINED_SUBPROBLEM, 
-				MPI_COMM_WORLD, &status);
+			/*MPI_Recv(&tempRecvState, 1, dataState, leftNeighbor, UNEXAMINED_SUBPROBLEM, 
+				MPI_COMM_WORLD, &status);*/
+			MPI_Recv(&tempRecvState, sizeof(struct state), MPI_BYTE, leftNeighbor, 
+				UNEXAMINED_SUBPROBLEM, MPI_COMM_WORLD, &status);
 			msgCount = msgCount - 1;
 			color = BLACK;
 			if(tempRecvState->lowerBound < global_c)
@@ -198,8 +204,8 @@ int main(int argc, char *argv[])
 				queue.push(*tempRecvState);
 			}
 			freeState(tempRecvState);
-			unexaminedSubFlag = false;
-			MPI_Iprobe(leftNeighbor, UNEXAMINED_SUBPROBLEM, MPI_COMM_WORLD, &unexaminedSubFlag, $status);
+			unexaminedSubFlag = 0;
+			MPI_Iprobe(leftNeighbor, UNEXAMINED_SUBPROBLEM, MPI_COMM_WORLD, &unexaminedSubFlag, &status);
 		}
 
 		// if more than one unexamined subproblem in queue, then
@@ -208,8 +214,10 @@ int main(int argc, char *argv[])
 			struct state *tempSendState = (state*)malloc(sizeof(struct state));
 			*tempSendState = queue.top();
 			queue.pop();
-			MPI_Send(&tempSendState, 1, dataState, rightNeighbor, UNEXAMINED_SUBPROBLEM,
-				MPI_COMM_WORLD);
+			/*MPI_Send(&tempSendState, 1, dataState, rightNeighbor, UNEXAMINED_SUBPROBLEM,
+				MPI_COMM_WORLD);*/
+			MPI_Send(&tempSendState, sizeof(struct state), MPI_BYTE, rightNeighbor, 
+				UNEXAMINED_SUBPROBLEM, MPI_COMM_WORLD);
 			msgCount = msgCount + 1;
 			color = BLACK;
 		}
@@ -258,7 +266,7 @@ int main(int argc, char *argv[])
 				for(i=0; i<numDirections; i++)
 				{
 					k = directions[i];
-					nextState = makeAMove(k, currentState);
+					nextState = makeAState(k, currentState);
 					if(nextState->lowerBound < global_c)
 					{
 						queue.push(*nextState);
@@ -273,6 +281,8 @@ int main(int argc, char *argv[])
 	freeState(nextState);
 	freeState(initial);
 	free(token);
+
+	MPI_Finalize();
 
 	return 0;
 }
