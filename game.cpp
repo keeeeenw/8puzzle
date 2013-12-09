@@ -402,7 +402,7 @@ int main(int argc, char *argv[])
 
 	////while (!queue.empty())
 
-	int j;
+	int i, j;
 	//for(j=0; j<100000; j++)
 	while (!queue.empty())
 	{
@@ -447,8 +447,6 @@ int main(int argc, char *argv[])
 				printf("lowerBound is %d and moveSoFar is %d \n", currentState->lowerBound, currentState->moveSoFar);
 				printBoard(currentState->board, n);
 			}
-                std::cout << "pq size: " << queue.size() << '\n';
-            }
 
 			// For each direction, find the nextState
 			for(i=0; i<numDirections; i++)
