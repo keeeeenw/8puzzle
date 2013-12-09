@@ -4,8 +4,10 @@
 #include <iostream>		// for CPP
 #include <queue>		// for priority queue
 #include <sys/time.h>	// for gettimeofday
-//#include <mpi.h>        // for MPI routines, definitions, etc 
+#include <mpi.h>        // for MPI routines, definitions, etc 
 using namespace std;
+
+#include "game.h"
 
 #define INF 1000000				/* Proxy for inifinite */
 #define COMM_INTERVAL 200		/* Time between communication steps */
@@ -38,17 +40,6 @@ struct TOKEN
 	struct state s;
 };
 
-int timeDiff(timeval *start)
-{
-	int millisec, sec;
-	struct timeval end;
-	gettimeofday(&end, NULL);
-
-	millisec = end.tv_usec - start->tv_usec;
-	sec = end.tv_sec - start->tv_sec;
-	return sec * 1000000 + millisec;
-}
-
 int main(int argc, char *argv[])
 {
 	int myRank, numProcs;				// MPI related variables
@@ -78,21 +69,21 @@ int main(int argc, char *argv[])
 	int *board;
 	board = (int*)malloc(n*n * sizeof(int));
 
-	// fill board randomly
+	/*// fill board randomly
 	srand(time(NULL));
 	fillBoard(board, n);
-	shuffleBoard(board, n*n);
+	shuffleBoard(board, n*n);*/
 
 	// fill specific board
-	board[0] = 1;
-	board[1] = 3;
-	board[2] = 4;
-	board[3] = 8;
-	board[4] = 6;
-	board[5] = 2;
-	board[6] = 7;
-	board[7] = 0;
-	board[8] = 5;
+	board[0] = 8;
+	board[1] = 7;
+	board[2] = 0;
+	board[3] = 2;
+	board[4] = 3;
+	board[5] = 6;
+	board[6] = 4;
+	board[7] = 5;
+	board[8] = 1;
 
 	// check solvability
 	while(!isSolvable(board, n)){
@@ -123,7 +114,7 @@ int main(int argc, char *argv[])
 	{
 		
 		/****************************** BandB_Communication() ******************************/
-		int terminationFlag, tokenFlag, unexaminedSubFlag;
+		bool terminationFlag = false, tokenFlag = false, unexaminedSubFlag = false;
 		// get the neighbors in the ring (receive from left, send to right)
 		int leftNeighbor = (myRank + numProcs - 1) / numProcs;
 		int rightNeighbor = (myRank + 1) / numProcs;
@@ -195,7 +186,7 @@ int main(int argc, char *argv[])
 		// ????? suppose to be while, how to handle?
 		// check pending message with Unexamined subproblem tag
 		MPI_Iprobe(leftNeighbor, UNEXAMINED_SUBPROBLEM, MPI_COMM_WORLD, &unexaminedSubFlag, $status);
-		if(unexaminedSubFlag)
+		while(unexaminedSubFlag)
 		{
 			struct state *tempRecvState;
 			MPI_Recv(&tempRecvState, 1, dataState, leftNeighbor, UNEXAMINED_SUBPROBLEM, 
@@ -207,6 +198,8 @@ int main(int argc, char *argv[])
 				queue.push(*tempRecvState);
 			}
 			freeState(tempRecvState);
+			unexaminedSubFlag = false;
+			MPI_Iprobe(leftNeighbor, UNEXAMINED_SUBPROBLEM, MPI_COMM_WORLD, &unexaminedSubFlag, $status);
 		}
 
 		// if more than one unexamined subproblem in queue, then
@@ -229,7 +222,8 @@ int main(int argc, char *argv[])
 	{
 		*currentState = queue.top();
 		queue.pop();
-		if(currentState->lowerBound < best_c ????? )
+		// ????? what is best_c, is it local_c or global_c
+		if(currentState->lowerBound < local_c )
 		{
 			color = BLACK;
 			if(checkResult(currentState->board, currentState->dim))
