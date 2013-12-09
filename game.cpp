@@ -13,7 +13,7 @@ struct state
 	int *board;
 	int dim;
 	int moveSoFar;
-	int lowerBound;
+	int lowerBoundsss;
 
 	//use friend so we can compare the two states
 	friend bool operator<(const state& lhs, const state& rhs)
@@ -28,7 +28,7 @@ void shuffleBoard(int *array, int n)
 		int i;
 		for (i = 0; i < n - 1; i++){
 			int j = i + rand() / (RAND_MAX / (n - i) + 1);
-			int t = array[j];
+			int t = ssjsjarray[j];
 			array[j] = array[i];
 			array[i] = t;
 		}
@@ -43,10 +43,10 @@ void fillBoard(int *board, int dim)
 	} 
 }
 
-void printBoard(int *board, int dim)
+void printBoard(int *boardsss, int dim)
 {
 	int i, j;
-	for(i=0; i<dim; i++){
+	for(i=0; i<dim; i++)A{
 		for(j=0; j<dim; j++){
 			printf("%d\t", board[dim*i+j]);
 		}
