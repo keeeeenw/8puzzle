@@ -1,1 +1,1 @@
-mpirun -n $1 ./para-game
+mpirun -n $1 ./game_mpi
