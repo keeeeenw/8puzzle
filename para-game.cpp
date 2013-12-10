@@ -243,7 +243,7 @@ int main(int argc, char *argv[])
             // ????? suppose to be while, how to handle?
             // check pending message with Unexamined subproblem tag
             MPI_Iprobe(leftNeighbor, UNEXAMINED_SUBPROBLEM, MPI_COMM_WORLD, &unexaminedSubFlag, &status);
-            while(unexaminedSubFlag)
+            while(unexaminedSubFlag!=0)
             {
                 struct state *tempRecvState;
                 /*MPI_Recv(&tempRecvState, 1, dataState, leftNeighbor, UNEXAMINED_SUBPROBLEM, 
@@ -283,7 +283,7 @@ int main(int argc, char *argv[])
 
             /***********************************************************************************/
 
-            gettimeofday(&lastComm, NULL);
+            gettimeofday(&lastComm, NULL); //get current time
         }
         else if(!queue.empty())
         {
@@ -293,9 +293,12 @@ int main(int argc, char *argv[])
             printf("node %d here 9 \n", myRank);
 
             // ????? what is best_c, is it local_c or global_c
+            //int best_c = local_bestState->lowerBound;
+            //if(currentState->lowerBound < best_c) //currentState is u in the pseudo code
             if(currentState->lowerBound < local_c )
             {
                 color = BLACK;
+                // if currentState is the solution
                 if(checkResult(currentState->board, currentState->dim))
                 {
                     if(currentState->lowerBound < global_c)
@@ -328,7 +331,7 @@ int main(int argc, char *argv[])
                     for(i=0; i<numDirections; i++)
                     {
                         k = directions[i];
-                        nextState = makeAState(k, currentState);
+                        nextState = makeAState(k, currentState); //this is v in the pseudo code
                         if(nextState->lowerBound < global_c)
                         {
                             queue.push(*nextState);
