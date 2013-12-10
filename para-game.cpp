@@ -50,15 +50,32 @@ int main(int argc, char *argv[])
 	// token passed around ring for termination detection
 	struct TOKEN *token	= (TOKEN*)malloc(sizeof(struct TOKEN));	
 
+	int n = 3; //board size is 3x3
+
 	// different states
 	struct state *local_bestState = (state*)malloc(sizeof(struct state));
 	struct state *currentState  = (state*)malloc(sizeof(struct state));
 	struct state *nextState = (state*)malloc(sizeof(struct state));
 
-	// initialize board
-	int n = 3;
+    //initialize local_bestState
+    int *local_board1;
+    local_board1 = (int*)malloc(n*n * sizeof(int));
+	setState(local_bestState, local_board1, n, 0);
+	local_bestState->lowerBound = INF;
+
+    //initialize currentState
+    int *local_board2;
+    local_board2 = (int*)malloc(n*n * sizeof(int));
+	setState(currentState, local_board2, n, 0);
+	currentState->lowerBound = INF;
+
+    //initialize nextState
+    int *local_board3;
+    local_board3 = (int*)malloc(n*n * sizeof(int));
+	setState(nextState, local_board3, n, 0);
+	nextState->lowerBound = INF;
 	
-	if(myRank == MASTER)
+	if(myRank == MASTER) //master initialize board
 	{
 		int *board;
 		board = (int*)malloc(n*n * sizeof(int));
@@ -102,8 +119,8 @@ int main(int argc, char *argv[])
 		freeState(initial);
 	}
 
+
 	local_c = INF;
-	local_bestState->lowerBound = INF;
 	gettimeofday(&lastComm, NULL);
 	msgCount = 0;
 	color = WHITE;
@@ -111,7 +128,7 @@ int main(int argc, char *argv[])
 	printf("node %d here 3 \n", myRank);
 
     int i = 0;
-    for (int i=0; i<5; i++)
+    for (int i=0; i<1; i++)
     {
         if(queue.empty() || timeDiff(&lastComm) > COMM_INTERVAL)
         {
@@ -298,9 +315,9 @@ int main(int argc, char *argv[])
         printf("node %d here 11 \n", myRank);
     }
 	freeState(local_bestState);
-	//freeState(currentState);
+	freeState(currentState);
 	printf("node %d here 12 \n", myRank);
-	freeState(nextState);
+	//freeState(nextState);
 	/*if(myRank == MASTER)
 	{
 		freeState(initial);
