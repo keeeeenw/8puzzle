@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 	MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
 	MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
 
-	printf("node %d here 1 \n", myRank);
+	//printf("node %d here 1 \n", myRank);
 
     // initialize variables
 	enum Color color;					// process color (for termination detection)
@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
 		board[7] = 5;
 		board[8] = 1;
 
-		printf("node %d here 2 \n", myRank);
+		//printf("node %d here 2 \n", myRank);
 
 		// check solvability
 		while(!isSolvable(board, n)){
@@ -105,6 +105,9 @@ int main(int argc, char *argv[])
 
 		setState(initial, board, n, 0);
 
+        printf("Initial \n");
+        printBoard(initial->board, n);
+
 		queue.push(*initial);
 		token->c = INF;
 		token->color = WHITE;
@@ -113,8 +116,9 @@ int main(int argc, char *argv[])
 		MPI_Send(token, sizeof(struct TOKEN), MPI_BYTE, 1, Token, 
 				MPI_COMM_WORLD);
 
-        printf("Freeing initial \n");
-		freeState(initial);
+        //printf("Freeing initial \n");
+		//freeState(initial); //do not free it here
+        printPQueue(queue);
 	}
 
 	// different states
@@ -133,6 +137,8 @@ int main(int argc, char *argv[])
     local_board2 = (int*)malloc(n*n * sizeof(int));
 	setState(currentState, local_board2, n, 0);
 	currentState->lowerBound = INF;
+    printf("Current State Default \n");
+    printBoard(currentState->board, n);
 
     //initialize nextState
     int *local_board3;
@@ -145,10 +151,10 @@ int main(int argc, char *argv[])
 	msgCount = 0;
 	color = WHITE;
 
-	printf("node %d here 3 \n", myRank);
+	//printf("node %d here 3 \n", myRank);
 
     int i = 0;
-    for (int i=0; i<10000; i++) //this suppose to repeat forever
+    for (int i=0; i<100; i++) //this suppose to repeat forever
     {
         if(queue.empty() || timeDiff(&lastComm) > COMM_INTERVAL)
         {
@@ -160,8 +166,8 @@ int main(int argc, char *argv[])
             int rightNeighbor = (myRank + 1) % numProcs;
 
             //printf("node %d here 4 \n", myRank);
-            printf("node %d has left rank %d \n", myRank, leftNeighbor);
-            printf("node %d has right rank %d \n", myRank, rightNeighbor);
+            //printf("node %d has left rank %d \n", myRank, leftNeighbor);
+            //printf("node %d has right rank %d \n", myRank, rightNeighbor);
 
             // check pending message with TERMINATION tag
             MPI_Iprobe(MASTER, TERMINATION, MPI_COMM_WORLD, &terminationFlag, &status);
@@ -174,7 +180,7 @@ int main(int argc, char *argv[])
                 return 0;
             }
 
-            printf("node %d here 5 \n", myRank);
+            //printf("node %d here 5 \n", myRank);
 
             // check pending message with Token tag
             MPI_Iprobe(leftNeighbor, Token, MPI_COMM_WORLD, &tokenFlag, &status);
@@ -182,6 +188,8 @@ int main(int argc, char *argv[])
             {
                 // need to think about how to pass token
                 // http://stackoverflow.com/questions/5972018/
+                printf("Process %d received token \n", myRank);
+
                 MPI_Recv(token, sizeof(struct TOKEN), MPI_BYTE, leftNeighbor, Token, 
                     MPI_COMM_WORLD, &status);
 
@@ -238,7 +246,7 @@ int main(int argc, char *argv[])
                 color = WHITE;
             }
 
-            printf("node %d here 6 \n", myRank);
+            //printf("node %d here 6 \n", myRank);
             
             // ????? suppose to be while, how to handle?
             // check pending message with Unexamined subproblem tag
@@ -263,7 +271,7 @@ int main(int argc, char *argv[])
                 MPI_Iprobe(leftNeighbor, UNEXAMINED_SUBPROBLEM, MPI_COMM_WORLD, &unexaminedSubFlag, &status);
             }
 
-            printf("node %d here 7 \n", myRank);
+            //printf("node %d here 7 \n", myRank);
 
             // if more than one unexamined subproblem in queue, then
             if(queue.size() > 1)
@@ -279,7 +287,7 @@ int main(int argc, char *argv[])
                 color = BLACK;
             }
 
-            printf("node %d here 8 \n", myRank);
+            //printf("node %d here 8 \n", myRank);
 
             /***********************************************************************************/
 
@@ -290,7 +298,10 @@ int main(int argc, char *argv[])
             *currentState = queue.top();
             queue.pop();
 
-            printf("node %d here 9 \n", myRank);
+            //print board here for debugging
+            printBoard(currentState->board,n);
+
+            //printf("node %d here 9 \n", myRank);
 
             // ????? what is best_c, is it local_c or global_c
             //int best_c = local_bestState->lowerBound;
@@ -338,13 +349,13 @@ int main(int argc, char *argv[])
                         }
                     }
 
-                    printf("node %d here 10 \n", myRank);
+                    //printf("node %d here 10 \n", myRank);
 
                     free(directions);
                 }
             }
         }
-        printf("node %d here 11 \n", myRank);
+        //printf("node %d here 11 \n", myRank);
     }
     //printf("freeing local_bestState \n");
 	//freeState(local_bestState);
@@ -359,7 +370,7 @@ int main(int argc, char *argv[])
 	}*/
 	//free(token);
 
-	printf("node %d here 13 \n", myRank);
+	////printf("node %d here 13 \n", myRank);
 
 	//MPI_Finalize();
 
