@@ -46,6 +46,14 @@ struct TOKEN
 	struct state s;
 };
 
+void printToken(struct TOKEN *token)
+{
+    printf("-------- Token Start ------------\n");
+    printf("cost %d \n", token->c);
+    printf("count %d \n", token->count);
+    printf("-------- Token End ------------\n");
+}
+
 int main(int argc, char *argv[])
 {
 	int myRank, numProcs;				// MPI related variables
@@ -154,7 +162,7 @@ int main(int argc, char *argv[])
 	//printf("node %d here 3 \n", myRank);
 
     int i = 0;
-    for (int i=0; i<100; i++) //this suppose to repeat forever
+    for (int i=0; i<10; i++) //this suppose to repeat forever
     {
         if(queue.empty() || timeDiff(&lastComm) > COMM_INTERVAL)
         {
@@ -188,10 +196,18 @@ int main(int argc, char *argv[])
             {
                 // need to think about how to pass token
                 // http://stackoverflow.com/questions/5972018/
-                printf("Process %d received token \n", myRank);
+                //if(token)
+                //{
+                //    printf("token working \n");
+                //    printToken(token);
+                //}
+                //else
+                //    printf("token null\n");
 
                 MPI_Recv(token, sizeof(struct TOKEN), MPI_BYTE, leftNeighbor, Token, 
                     MPI_COMM_WORLD, &status);
+
+                printf("Process %d received token \n", myRank);
 
                 // update token cost if local cost is smaller
                 if(local_c < token->c)
@@ -299,7 +315,8 @@ int main(int argc, char *argv[])
             queue.pop();
 
             //print board here for debugging
-            printBoard(currentState->board,n);
+            //printf("Current State \n");
+            //printBoard(currentState->board,n);
 
             //printf("node %d here 9 \n", myRank);
 
@@ -316,6 +333,7 @@ int main(int argc, char *argv[])
                     {
                         // ????? not sure which one will work, memcpy or dereference
                         // memcpy(local_bestState, currentState, sizeof(state));
+                        printf("Accessing Memory");
                         *local_bestState = *currentState;
                         local_c = currentState->lowerBound;
                     }
