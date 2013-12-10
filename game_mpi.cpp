@@ -17,7 +17,7 @@ using namespace std;
 #include "game.h"
 
 #define INF 1000000				/* Proxy for inifinite */
-#define COMM_INTERVAL 20000		/* Time between communication steps */
+#define COMM_INTERVAL 50000		/* Time between communication steps */
 #define MASTER 0				/* ID of the master node */
 #define TERMINATION 1			/* Tags termination messages */
 #define Token 2					/* Tags token message */
@@ -78,8 +78,11 @@ int main(int argc, char *argv[])
 		token->color = WHITE;
 		token->count = 0;
 		// send token to next process (myRank = 1)
-		MPI_Send(token, sizeof(struct TOKEN), MPI_BYTE, 1, Token, 
+        msgCount++;
+        color = BLACK;
+		MPI_Ssend(token, sizeof(struct TOKEN), MPI_BYTE, 1, Token, 
 				MPI_COMM_WORLD);
+        color = WHITE;
 	}
 
 
@@ -115,6 +118,7 @@ int main(int argc, char *argv[])
                     //Halt the process
                     printf("node %d, termination flag recieved \n", myRank);
                     MPI_Finalize(); 
+                    return 0;
                 }
 
                 // check pending message with Token tag
@@ -124,6 +128,8 @@ int main(int argc, char *argv[])
                 {
                     MPI_Recv(token, sizeof(struct TOKEN), MPI_BYTE, leftNeighbor, Token, 
                         MPI_COMM_WORLD, &status);
+                    if(myRank != MASTER)
+                        msgCount--;
 
                     //printf("Process %d received token \n", myRank);
 
@@ -151,6 +157,7 @@ int main(int argc, char *argv[])
                                 MPI_Send(0, 0, MPI_INT, rank, TERMINATION, MPI_COMM_WORLD);
                             }
                             MPI_Finalize(); //terminate itself
+                            return 0;
                         }
                         else
                         {
@@ -166,7 +173,9 @@ int main(int argc, char *argv[])
                     }
 
                     // forward token to the successor
-                    MPI_Send(token, sizeof(struct TOKEN), MPI_BYTE, rightNeighbor, Token, 
+                    msgCount++;
+                    color = BLACK;
+                    MPI_Ssend(token, sizeof(struct TOKEN), MPI_BYTE, rightNeighbor, Token, 
                         MPI_COMM_WORLD);
                     color = WHITE; //after sending message
                 }
