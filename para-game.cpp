@@ -78,6 +78,9 @@ int main(int argc, char *argv[])
 	// token passed around ring for termination detection
 	struct TOKEN *token	= (TOKEN*)malloc(sizeof(struct TOKEN));	
 
+    // initial state of the board
+    struct state *initial = (state*)malloc(sizeof(struct state));
+
 	int n = 3; //board size is 3x3
 
 	if(myRank == MASTER) //master initialize board
@@ -109,7 +112,6 @@ int main(int argc, char *argv[])
 		}
 
 		// construct initial state
-		struct state *initial = (state*)malloc(sizeof(struct state));
 
 		setState(initial, board, n, 0);
 
@@ -375,22 +377,22 @@ int main(int argc, char *argv[])
         }
         //printf("node %d here 11 \n", myRank);
     }
-    //printf("freeing local_bestState \n");
-	//freeState(local_bestState);
-    //printf("freeing currentState \n");
-	//freeState(currentState);
-	//printf("node %d here 12 \n", myRank);
-    //printf("freeing nextState \n");
-	//freeState(nextState);
-	/*if(myRank == MASTER)
+    printf("freeing local_bestState \n");
+	freeState(local_bestState);
+    printf("freeing currentState \n");
+	freeState(currentState);
+	printf("node %d here 12 \n", myRank);
+    printf("freeing nextState \n");
+	freeState(nextState);
+	if(myRank == MASTER)
 	{
 		freeState(initial);
-	}*/
+	}
 	//free(token);
 
 	////printf("node %d here 13 \n", myRank);
 
-	//MPI_Finalize();
+	MPI_Finalize();
 
 	return 0;
 }
