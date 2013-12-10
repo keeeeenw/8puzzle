@@ -80,6 +80,9 @@ int main(int argc, char *argv[])
 		// send token to next process (myRank = 1)
         msgCount++;
         color = BLACK;
+        printf("From master, size of token struct: %lu \n", sizeof(struct TOKEN));
+        printf("From master, size of state struct: %lu \n", sizeof(struct state));
+        printf("From master, size of int: %lu \n", sizeof(int));
 		MPI_Ssend(token, sizeof(struct TOKEN), MPI_BYTE, 1, Token, 
 				MPI_COMM_WORLD);
         color = WHITE;
@@ -93,7 +96,7 @@ int main(int argc, char *argv[])
             if(queue.empty() || timeDiff(&lastComm) > COMM_INTERVAL)
             {
 
-            /****************************** BandB_Communication() Start ******************************/
+                /****************************** BandB_Communication() Start ******************************/
                 int terminationFlag = 0, tokenFlag = 0, unexaminedSubFlag = 0;
                 // get the neighbors in the ring (receive from left, send to right)
                 int leftNeighbor = (myRank + numProcs - 1) % numProcs;
@@ -104,14 +107,6 @@ int main(int argc, char *argv[])
                 MPI_Iprobe(MASTER, TERMINATION, MPI_COMM_WORLD, &terminationFlag, &status);
                 if(terminationFlag!=0)
                 {
-                    //clean up receive before finalize
-                    ////token receive
-                    //MPI_Iprobe(leftNeighbor, Token, MPI_COMM_WORLD, &tokenFlag, &status);
-                    //if (tokenFlag!=0){ 
-                    //    MPI_Recv(token, sizeof(struct TOKEN), MPI_BYTE, leftNeighbor, Token,
-                    //                            MPI_COMM_WORLD, &status);
-                    //}
-
                     //termination receive
                     MPI_Recv(0, 0, MPI_INT, MASTER, TERMINATION, MPI_COMM_WORLD, &status);
 
@@ -175,11 +170,12 @@ int main(int argc, char *argv[])
                     // forward token to the successor
                     msgCount++;
                     color = BLACK;
+                    printToken(token);
                     MPI_Ssend(token, sizeof(struct TOKEN), MPI_BYTE, rightNeighbor, Token, 
                         MPI_COMM_WORLD);
                     color = WHITE; //after sending message
                 }
-            /****************************** BandB_Communication() End ******************************/
+                /****************************** BandB_Communication() End ******************************/
                 gettimeofday(&lastComm, NULL); //get current time
             }
 
