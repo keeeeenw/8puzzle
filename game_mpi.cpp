@@ -60,8 +60,9 @@ int main(int argc, char *argv[])
 	// token passed around ring for termination detection
 	struct TOKEN *token	= (TOKEN*)malloc(sizeof(struct TOKEN));	
 
-    // initialize some local variables
+    // initialize some variables
 	local_c = INF;
+    global_c = INF;
 	//gettimeofday(&lastComm, NULL);
     last_comm = MPI_Wtime();
     //printf("last_comm is %f \n", last_comm);
@@ -133,9 +134,9 @@ int main(int argc, char *argv[])
 		//board[8] = 0;
 
 		// check solvability
-		while(!isSolvable(board, n)){
-			shuffleBoard(board, n*n);
-		}
+		//while(!isSolvable(board, n)){
+		//	shuffleBoard(board, n*n);
+		//}
 
         // Get the time after generate the board
         start_t = MPI_Wtime();
@@ -167,7 +168,7 @@ int main(int argc, char *argv[])
         // send token to the successor
         MPI_Ssend(initialPackedToken, n*n+6, MPI_INT, 1, Token, MPI_COMM_WORLD);
         // free send buffer
-        //free(initialPackedToken);
+        free(initialPackedToken);
         color = WHITE;
 	}
 
@@ -392,9 +393,9 @@ int main(int argc, char *argv[])
 
             #ifdef DEBUG
             //printf("queue not empty on node %d, current state: \n", myRank);
+            //printState(currentState);
             #endif 
 
-            //printState(currentState);
 
             if(currentState->lowerBound < local_c )
             {
@@ -435,10 +436,16 @@ int main(int argc, char *argv[])
                         makeAState(k, currentState, nextState); //this is v in the pseudo code
                         //printf("node %d, next state: \n", myRank);
                         //printState(nextState);
+                        #ifdef DEBUG
+                        //printf("node %d, global_c %d \n", myRank, global_c);
+                        //printState(nextState);
+                        #endif
                         if(nextState->lowerBound < global_c)
                         {
+                            #ifdef DEBUG
                             //printf("node %d, next state: \n", myRank);
                             //printState(nextState);
+                            #endif
                             queue.push(*nextState);
                         }
                     }
