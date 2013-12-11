@@ -22,4 +22,6 @@ all:
 
 clean:
 	rm -f $(PROG) a.out *~ *# *.o
+	rm -f $(PROG)_mpi a.out *~ *# *.o
+	rm -f $(PROG)_mpi_debug a.out *~ *# *.o
 
