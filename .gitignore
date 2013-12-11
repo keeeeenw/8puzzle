@@ -1,2 +1,5 @@
 *.swp
 *.dSYM
+game
+game_mpi
+game_mpi_debug
