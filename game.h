@@ -6,6 +6,8 @@
 #include <sys/time.h>	// for gettimeofday
 #include <mpi.h>        // for MPI routines, definitions, etc
 
+enum Color{ WHITE, BLACK };
+
 struct state
 {
 	int *board;
@@ -19,6 +21,14 @@ struct state
 		return lhs.lowerBound > rhs.lowerBound;
 	}
 }; 
+
+struct TOKEN
+{
+	int c;
+	enum Color color;
+	int count;
+	struct state s;
+};
 
 void shuffleBoard(int *array, int n);
 void fillBoard(int *board, int dim);
@@ -37,6 +47,91 @@ bool compareBoard(int *board1, int *board2, int dim);
 bool pqueueContain(priority_queue<state> queue, struct state *newState, int dim);
 bool isSolvable(int *board, int dim);
 int timeDiff(timeval *start);
+void packState(state *State, int* array);
+void unpackState(int* packedState, state *newState);
+void packToken(TOKEN *token, int* array);
+void unpackToken(int* packedToken, TOKEN *newToken);
+
+void packToken(TOKEN *token, int* array)
+{
+	int dim = token->s.dim;
+	int size = dim * dim + 6;
+
+	array[0] = token -> c;
+	// BLACK is 0 and WHITE is 1
+	if(token->color == WHITE)
+		array[1] = 1;
+	else
+		array[1] = 0;
+	array[2] = token -> count;
+	array[3] = token -> s.dim;
+	array[4] = token -> s.moveSoFar;
+	array[5] = token -> s.lowerBound;
+
+	int i;
+	for(i=6; i<size; i++){
+		array[i] = token->s.board[i-6];
+	}
+}
+
+void unpackToken(int* packedToken, TOKEN *newToken)
+{
+	int dim = packedToken[3];
+	int *newBoard = (int*)malloc(dim*dim * sizeof(int));
+	struct state *newState = (state*)malloc(sizeof(struct state));
+
+	int i;
+	for(i=0; i<dim*dim; i++)
+	{
+		newBoard[i] = packedToken[i+6];
+	}
+
+	newState -> board = newBoard;
+	newState -> dim = packedToken[3];
+	newState -> moveSoFar = packedToken[4];
+	newState -> lowerBound = packedToken[5];
+
+	newToken -> c = packedToken[0];
+	// BLACK is 0 and WHITE is 1
+	if(packedToken[1] == 0)
+		newToken -> color = BLACK;
+	else
+		newToken -> color = WHITE;
+	newToken -> count = packedToken[2];
+	newToken -> s = *newState;
+}
+
+void packState(state *State, int* array)
+{
+	int dim = State->dim;
+	int size = dim * dim + 3;
+
+	array[0] = State -> dim;
+	array[1] = State -> moveSoFar;
+	array[2] = State -> lowerBound;
+
+	int i;
+	for(i=3; i<size; i++){
+		array[i] = State->board[i-3];
+	}
+}
+
+void unpackState(int* packedState, state *newState)
+{
+	int dim = packedState[0];
+	int *newBoard = (int*)malloc(dim*dim * sizeof(int));
+
+	int i;
+	for(i=0; i<dim*dim; i++)
+	{
+		newBoard[i] = packedState[i+3];
+	}
+
+	newState -> board = newBoard;
+	newState -> dim = packedState[0];
+	newState -> moveSoFar = packedState[1];
+	newState -> lowerBound = packedState[2];
+}
 
 void shuffleBoard(int *array, int n)
 {

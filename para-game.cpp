@@ -30,21 +30,11 @@ using namespace std;
 #include "game.h"
 
 #define INF 1000000				/* Proxy for inifinite */
-#define COMM_INTERVAL 200		/* Time between communication steps */
+#define COMM_INTERVAL 50   	    /* Time between communication steps */
 #define MASTER 0				/* ID of the master node */
 #define TERMINATION 1			/* Tags termination messages */
 #define Token 2					/* Tags token message */
 #define UNEXAMINED_SUBPROBLEM 3 /* Tags message containing unexamined subproblem */
-
-enum Color{ WHITE, BLACK };
-
-struct TOKEN
-{
-	int c;
-	enum Color color;
-	int count;
-	struct state s;
-};
 
 void printToken(struct TOKEN *token)
 {
@@ -59,7 +49,7 @@ int main(int argc, char *argv[])
 	int myRank, numProcs;				// MPI related variables
 
 	// initialize MPI
-	MPI_Init(NULL, NULL);
+	MPI_Init(&argc, &argv);
 	MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
 	MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
 
@@ -94,41 +84,41 @@ int main(int argc, char *argv[])
 		shuffleBoard(board, n*n);*/
 
 		// fill specific board 
-		board[0] = 8;
-		board[1] = 7;
-		board[2] = 0;
-		board[3] = 2;
+		board[0] = 1;
+		board[1] = 5;
+		board[2] = 2;
+		board[3] = 4;
 		board[4] = 3;
-		board[5] = 6;
-		board[6] = 4;
-		board[7] = 5;
-		board[8] = 1;
+		board[5] = 0;
+		board[6] = 7;
+		board[7] = 8;
+		board[8] = 6;
 
 		//printf("node %d here 2 \n", myRank);
 
 		// check solvability
-		while(!isSolvable(board, n)){
-			shuffleBoard(board, n*n);
-		}
+		//while(!isSolvable(board, n)){
+		//	shuffleBoard(board, n*n);
+		//}
 
 		// construct initial state
-
 		setState(initial, board, n, 0);
-
-        printf("Initial \n");
-        printBoard(initial->board, n);
 
 		queue.push(*initial);
 		token->c = INF;
 		token->color = WHITE;
 		token->count = 0;
-		// send token to next process (myRank = 1)
-		MPI_Send(token, sizeof(struct TOKEN), MPI_BYTE, 1, Token, 
-				MPI_COMM_WORLD);
+        token->s = *initial;
 
-        //printf("Freeing initial \n");
-		//freeState(initial); //do not free it here
-        printPQueue(queue);
+        // initialize send buffer
+        int *initialPackedToken = (int*)malloc((n*n+6) * sizeof(int));
+        // pack token
+        packToken(token, initialPackedToken);
+        // send token to the successor
+        MPI_Send(initialPackedToken, n*n+6, MPI_INT, 1, Token, MPI_COMM_WORLD);
+        // free send buffer
+
+        free(initialPackedToken);
 	}
 
 	// different states
@@ -147,8 +137,6 @@ int main(int argc, char *argv[])
     local_board2 = (int*)malloc(n*n * sizeof(int));
 	setState(currentState, local_board2, n, 0);
 	currentState->lowerBound = INF;
-    printf("Current State Default \n");
-    printBoard(currentState->board, n);
 
     //initialize nextState
     int *local_board3;
@@ -161,12 +149,11 @@ int main(int argc, char *argv[])
 	msgCount = 0;
 	color = WHITE;
 
-	//printf("node %d here 3 \n", myRank);
-
     int i = 0;
-    for (int i=0; i<10; i++) //this suppose to repeat forever
+    for (int i=0; i<1000000; i++) //this suppose to repeat forever
     {
-        if(queue.empty() || timeDiff(&lastComm) > COMM_INTERVAL)
+        int timediff = timeDiff(&lastComm);
+        if(queue.empty() || timediff > COMM_INTERVAL)
         {
             
             /****************************** BandB_Communication() ******************************/
@@ -175,22 +162,15 @@ int main(int argc, char *argv[])
             int leftNeighbor = (myRank + numProcs - 1) % numProcs;
             int rightNeighbor = (myRank + 1) % numProcs;
 
-            //printf("node %d here 4 \n", myRank);
-            //printf("node %d has left rank %d \n", myRank, leftNeighbor);
-            //printf("node %d has right rank %d \n", myRank, rightNeighbor);
-
             // check pending message with TERMINATION tag
             MPI_Iprobe(MASTER, TERMINATION, MPI_COMM_WORLD, &terminationFlag, &status);
             if(terminationFlag!=0)
             {
                 // ????? do we need MPI_Recv here?
-                //MPI_Recv(0, 0, MPI_INT, MASTER, TERMINATION, MPI_COMM_WORLD, &status);
-                printf("termination flag recieved");
-                MPI_Finalize(); //Halt the process
+                MPI_Recv(0, 0, MPI_INT, MASTER, TERMINATION, MPI_COMM_WORLD, &status);
+                //printf("termination flag recieved");
                 return 0;
             }
-
-            //printf("node %d here 5 \n", myRank);
 
             // check pending message with Token tag
             MPI_Iprobe(leftNeighbor, Token, MPI_COMM_WORLD, &tokenFlag, &status);
@@ -198,19 +178,16 @@ int main(int argc, char *argv[])
             {
                 // need to think about how to pass token
                 // http://stackoverflow.com/questions/5972018/
-                //if(token)
-                //{
-                //    printf("token working \n");
-                //    printToken(token);
-                //}
-                //else
-                //    printf("token null\n");
 
-                MPI_Recv(token, sizeof(struct TOKEN), MPI_BYTE, leftNeighbor, Token, 
+                // initialize receive buffers
+                int *unPackedToken = (int*)malloc((n*n+6) * sizeof(int));
+                // receive token from previous node
+                MPI_Recv(unPackedToken, n*n+6, MPI_INT, leftNeighbor, Token, 
                     MPI_COMM_WORLD, &status);
+                // unpack and reconstruct token
+                unpackToken(unPackedToken, token);
 
-                printf("Process %d received token \n", myRank);
-
+                //printf("Process %d received token \n", myRank);
                 // update token cost if local cost is smaller
                 if(local_c < token->c)
                 {
@@ -219,15 +196,18 @@ int main(int argc, char *argv[])
                 }
 
                 // clear queue if best solution in queue is worse than token cost
-                struct state *tempState  = (state*)malloc(sizeof(struct state));
-                *tempState = queue.top();
-                if(token->c <= tempState->lowerBound)
+                if(!queue.empty())
                 {
-                    queue = priority_queue<state>(); 
+                    struct state *tempState  = (state*)malloc(sizeof(struct state));
+                    *tempState = queue.top();
+                    if(token->c <= tempState->lowerBound)
+                    {
+                        queue = priority_queue<state>(); 
+                    }
+                    if(tempState)
+                        freeState(tempState);
                 }
-                printf("Freeing tempState");
-                freeState(tempState);
-
+                
                 // set global cost to token cost
                 global_c = token->c;
 
@@ -238,13 +218,13 @@ int main(int argc, char *argv[])
                         && token->color == WHITE 
                         && token->count + msgCount == 0)
                     { //send messages with a Termination tag to all other processes and halt
-                        printf("Sending Termination Tag, Stop Master \n");
+                        //printf("Sending Termination Tag, Stop Master \n");
                         int rank;
                         for (rank = 1; rank < numProcs; rank++) {
                             MPI_Send(0, 0, MPI_INT, rank, TERMINATION, MPI_COMM_WORLD);
                         }
-                        MPI_Finalize(); //terminate the process
-                        //return 0;
+                        printf("******* terminating program ********** \n");
+                        return 0;
                     }
                     else
                     {
@@ -259,37 +239,54 @@ int main(int argc, char *argv[])
                         token->color = BLACK;
                     token->count = token->count+msgCount;
                 }
-                MPI_Send(token, sizeof(struct TOKEN), MPI_BYTE, rightNeighbor, Token, 
-                    MPI_COMM_WORLD); //send token to the successor
-                color = WHITE;
-            }
 
-            //printf("node %d here 6 \n", myRank);
+                // initialize send buffer
+                int *packedToken = (int*)malloc((n*n+6) * sizeof(int));
+                // pack token
+                packToken(token, packedToken);
+                // send token to the successor
+                MPI_Send(packedToken, n*n+6, MPI_INT, rightNeighbor, Token, MPI_COMM_WORLD);
+
+                color = WHITE;
+
+                // free send and receive buffers
+                free(packedToken);
+                free(unPackedToken);
+            }
             
             // ????? suppose to be while, how to handle?
             // check pending message with Unexamined subproblem tag
             MPI_Iprobe(leftNeighbor, UNEXAMINED_SUBPROBLEM, MPI_COMM_WORLD, &unexaminedSubFlag, &status);
             while(unexaminedSubFlag!=0)
             {
-                struct state *tempRecvState;
-                /*MPI_Recv(&tempRecvState, 1, dataState, leftNeighbor, UNEXAMINED_SUBPROBLEM, 
-                    MPI_COMM_WORLD, &status);*/
-                MPI_Recv(&tempRecvState, sizeof(struct state), MPI_BYTE, leftNeighbor, 
-                    UNEXAMINED_SUBPROBLEM, MPI_COMM_WORLD, &status);
+                // DEBUG
+                printf("node %d receive subproblem \n", myRank);
+
+                // initialize receive buffers
+                int *unPackedState = (int*)malloc((n*n+3) * sizeof(int));
+                struct state *tempRecvState = (state*)malloc(sizeof(struct state));
+
+                MPI_Recv(unPackedState, n*n+3, MPI_INT, leftNeighbor, UNEXAMINED_SUBPROBLEM, 
+                    MPI_COMM_WORLD, &status);
+                
+                // unpack receive problem and create new state
+                unpackState(unPackedState, tempRecvState);
+
+                printBoard(tempRecvState->board, 3);
+
                 msgCount = msgCount - 1;
                 color = BLACK;
                 if(tempRecvState->lowerBound < global_c)
-                {
                     queue.push(*tempRecvState);
-                }
 
-                printf("freeing tempRecvState \n");
-                freeState(tempRecvState);
+                // free receive buffers
+                free(unPackedState);
+                if(tempRecvState)
+                    freeState(tempRecvState);                
+
                 unexaminedSubFlag = 0;
                 MPI_Iprobe(leftNeighbor, UNEXAMINED_SUBPROBLEM, MPI_COMM_WORLD, &unexaminedSubFlag, &status);
             }
-
-            //printf("node %d here 7 \n", myRank);
 
             // if more than one unexamined subproblem in queue, then
             if(queue.size() > 1)
@@ -297,15 +294,26 @@ int main(int argc, char *argv[])
                 struct state *tempSendState = (state*)malloc(sizeof(struct state));
                 *tempSendState = queue.top();
                 queue.pop();
-                /*MPI_Send(&tempSendState, 1, dataState, rightNeighbor, UNEXAMINED_SUBPROBLEM,
-                    MPI_COMM_WORLD);*/
-                MPI_Send(&tempSendState, sizeof(struct state), MPI_BYTE, rightNeighbor, 
-                    UNEXAMINED_SUBPROBLEM, MPI_COMM_WORLD);
+
+                //DEBUG
+                //printf("node %d send subproblem \n", myRank);
+                //printf("send lowerBound is %d \n", tempSendState -> lowerBound);
+
+                int *packedState = (int*)malloc((n*n+3) * sizeof(int));
+                packState(tempSendState, packedState);
+                
+                MPI_Send(packedState, n*n+3, MPI_INT, rightNeighbor, UNEXAMINED_SUBPROBLEM, 
+                    MPI_COMM_WORLD);
+
+                printBoard(tempSendState->board, 3);
+
                 msgCount = msgCount + 1;
                 color = BLACK;
-            }
 
-            //printf("node %d here 8 \n", myRank);
+                free(packedState);
+                if(tempSendState)
+                    freeState(tempSendState);
+            }
 
             /***********************************************************************************/
 
@@ -333,9 +341,6 @@ int main(int argc, char *argv[])
                 {
                     if(currentState->lowerBound < global_c)
                     {
-                        // ????? not sure which one will work, memcpy or dereference
-                        // memcpy(local_bestState, currentState, sizeof(state));
-                        printf("Accessing Memory");
                         *local_bestState = *currentState;
                         local_c = currentState->lowerBound;
                     }
@@ -375,22 +380,17 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        //printf("node %d here 11 \n", myRank);
     }
-    printf("freeing local_bestState \n");
-	freeState(local_bestState);
-    printf("freeing currentState \n");
-	freeState(currentState);
-	printf("node %d here 12 \n", myRank);
-    printf("freeing nextState \n");
+    //printf("freeing local_bestState \n");
+    if(local_bestState)
+	   freeState(local_bestState);
+    //printf("freeing currentState \n");
+    if(currentState)
+	   freeState(currentState);
+    //printf("freeing nextState \n");
 	freeState(nextState);
-	if(myRank == MASTER)
-	{
-		freeState(initial);
-	}
-	//free(token);
-
-	////printf("node %d here 13 \n", myRank);
+    //printf("freeing initial \n")
+	freeState(initial);
 
 	MPI_Finalize();
 
