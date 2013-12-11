@@ -32,6 +32,7 @@ struct TOKEN
 
 void shuffleBoard(int *array, int n);
 void fillBoard(int *board, int dim);
+void printArray(int *array, int dim);
 void printBoard(int *board, int dim);
 void printState(struct state *state);
 int getManhattan(int i, int dim, int sourceRow, int sourceCol);
@@ -40,7 +41,8 @@ bool checkResult(int *board, int dim);
 void setState(state *newState, int *board, int dim, int moveSoFar);
 void freeState(state *State);
 int* moveHole(int direction, int *board, int dim);
-state* makeAState(int direction, state *currentState);
+//state* makeAState(int direction, state *currentState);
+void makeAState(int direction, state *currentState, state *nextState);
 int setHoleDirection(int *directions, int holeRow, int holeCol, int n);
 void printPQueue(priority_queue<state> queue);
 bool compareBoard(int *board1, int *board2, int dim);
@@ -103,8 +105,12 @@ void unpackToken(int* packedToken, TOKEN *newToken)
 
 void packState(state *State, int* array)
 {
+    //printf("--------- packing start ------------\n");
 	int dim = State->dim;
 	int size = dim * dim + 3;
+
+    printf("Before pack \n");
+    printBoard(State->board, dim);
 
 	array[0] = State -> dim;
 	array[1] = State -> moveSoFar;
@@ -114,6 +120,13 @@ void packState(state *State, int* array)
 	for(i=3; i<size; i++){
 		array[i] = State->board[i-3];
 	}
+
+    //printf("dim %d \n", State->dim);
+    //printf("moveSoFar %d \n", State->moveSoFar);
+    //printf("lowerBound %d \n", State->lowerBound);
+    //printf("Packed Array \n");
+    //printArray(array, dim*dim+3);
+    //printf("--------- packing end ------------\n");
 }
 
 void unpackState(int* packedState, state *newState)
@@ -127,10 +140,14 @@ void unpackState(int* packedState, state *newState)
 		newBoard[i] = packedState[i+3];
 	}
 
+    //printf("unpacked board \n");
+    //printBoard(newBoard, dim);
+
 	newState -> board = newBoard;
 	newState -> dim = packedState[0];
 	newState -> moveSoFar = packedState[1];
 	newState -> lowerBound = packedState[2];
+
 }
 
 void shuffleBoard(int *array, int n)
@@ -152,6 +169,15 @@ void fillBoard(int *board, int dim)
 	for(i=0; i<(dim*dim); i++){
 		board[i] = i;
 	} 
+}
+
+void printArray(int *array, int dim)
+{
+	int i, j;
+	for(i=0; i<dim; i++){
+        printf("%d\t", array[i]);
+    }
+    printf("\n");
 }
 
 void printBoard(int *board, int dim)
@@ -295,12 +321,18 @@ int* moveHole(int direction, int *board, int dim)
 	return newBoard;
 }
 
-state* makeAState(int direction, state *currentState)
+//state* makeAState(int direction, state *currentState)
+//{
+//	struct state *nextState = (state*)malloc(sizeof(struct state));
+//	setState(nextState, moveHole(direction, currentState->board, currentState->dim), 
+//		currentState->dim, currentState->moveSoFar + 1);
+//	return nextState;
+//}
+
+void makeAState(int direction, state *currentState, state *nextState)
 {
-	struct state *nextState = (state*)malloc(sizeof(struct state));
 	setState(nextState, moveHole(direction, currentState->board, currentState->dim), 
 		currentState->dim, currentState->moveSoFar + 1);
-	return nextState;
 }
 
 int setHoleDirection(int *directions, int holeRow, int holeCol, int n)
@@ -470,7 +502,7 @@ bool isSolvable(int *board, int dim)
 
 int timeDiff(timeval *start)
 {
-	int millisec, sec;
+	long millisec, sec;
 	struct timeval end;
 	gettimeofday(&end, NULL);
 

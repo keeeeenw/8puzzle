@@ -17,7 +17,7 @@ using namespace std;
 #include "game.h"
 
 #define INF 1000000				/* Proxy for inifinite */
-#define COMM_INTERVAL 0.0001		/* Time between communication steps */
+#define COMM_INTERVAL 0.0000001		/* Time between communication steps */
 #define MASTER 0				/* ID of the master node */
 #define TERMINATION 1			/* Tags termination messages */
 #define Token 2					/* Tags token message */
@@ -100,15 +100,35 @@ int main(int argc, char *argv[])
 		int *board;
 		board = (int*)malloc(n*n * sizeof(int));
 		// fill specific board 
-		board[0] = 8;
-		board[1] = 7;
-		board[2] = 0;
-		board[3] = 2;
+		//board[0] = 8;
+		//board[1] = 7;
+		//board[2] = 0;
+		//board[3] = 2;
+		//board[4] = 3;
+		//board[5] = 6;
+		//board[6] = 4;
+		//board[7] = 5;
+		//board[8] = 1;
+
+		board[0] = 1;
+		board[1] = 5;
+		board[2] = 2;
+		board[3] = 4;
 		board[4] = 3;
-		board[5] = 6;
-		board[6] = 4;
-		board[7] = 5;
-		board[8] = 1;
+		board[5] = 0;
+		board[6] = 7;
+		board[7] = 8;
+		board[8] = 6;
+
+		//board[0] = 1;
+		//board[1] = 2;
+		//board[2] = 3;
+		//board[3] = 4;
+		//board[4] = 5;
+		//board[5] = 6;
+		//board[6] = 7;
+		//board[7] = 8;
+		//board[8] = 0;
 
 		// check solvability
 		while(!isSolvable(board, n)){
@@ -139,19 +159,21 @@ int main(int argc, char *argv[])
         // send token to the successor
         MPI_Ssend(initialPackedToken, n*n+6, MPI_INT, 1, Token, MPI_COMM_WORLD);
         // free send buffer
-        free(initialPackedToken);
+        //free(initialPackedToken);
         color = WHITE;
 	}
 
 
-    int ic = 0;
-    for (int ic=0; ic<1000; ic++) //this suppose to repeat forever
-    //while(true)
+    //int ic = 0;
+    //for (int ic=0; ic<1000; ic++) //this suppose to repeat forever
+    while(true)
     {
+        
         //if(queue.empty() || timeDiff(&lastComm) > COMM_INTERVAL)
-        if(queue.empty() || MPI_Wtime()-last_comm > COMM_INTERVAL)
+        //printf("Time Interval :%f \n",MPI_Wtime()-last_comm);
+        //if(queue.empty() || timeDiff(&lastComm) > 200000)
+        if(queue.empty() || MPI_Wtime()-last_comm > 0.0000001)
         {
-
             /****************************** BandB_Communication() Start ******************************/
             int terminationFlag = 0, tokenFlag = 0, unexaminedSubFlag = 0;
             // get the neighbors in the ring (receive from left, send to right)
@@ -189,7 +211,7 @@ int main(int argc, char *argv[])
                     MPI_COMM_WORLD, &status);
                 // unpack and reconstruct token
                 unpackToken(unPackedToken, token);
-                free(unPackedToken);
+                //free(unPackedToken);
                 if(myRank != MASTER)
                     msgCount--;
                 //printf("Process %d received token \n", myRank);
@@ -210,8 +232,8 @@ int main(int argc, char *argv[])
                     {
                         queue = priority_queue<state>(); 
                     }
-                    if(tempState)
-                        freeState(tempState);
+                    //if(tempState)
+                    //    freeState(tempState);
                 }
                 
                 // set global cost to token cost
@@ -234,6 +256,8 @@ int main(int argc, char *argv[])
                         for (rank = 1; rank < numProcs; rank++) {
                             MPI_Send(0, 0, MPI_INT, rank, TERMINATION, MPI_COMM_WORLD);
                         }
+                        printf("+++++++++++++++++ Solution ++++++++++++++++++++ \n");
+                        printToken(token);
                         MPI_Finalize(); //terminate itself
                         return 0;
                     }
@@ -288,8 +312,9 @@ int main(int argc, char *argv[])
                 
                 // unpack receive problem and create new state
                 unpackState(unPackedState, tempRecvState);
-                printState(tempRecvState);
-                free(unPackedState);
+                //printState(tempRecvState);
+                //free(unPackedState);
+                //freeState(tempRecvState);
 
                 msgCount = msgCount - 1;
                 color = BLACK;
@@ -310,20 +335,24 @@ int main(int argc, char *argv[])
             {
                 printf("node %d has unexamined subproblem \n", myRank);
                 struct state *tempSendState = (state*)malloc(sizeof(struct state));
+                //printPQueue(queue);
                 *tempSendState = queue.top();
                 queue.pop();
+                //printf("node %d poped the following state \n", myRank);
+                //printState(tempSendState);
 
-                int *packedState = (int*)malloc((n*n+3) * sizeof(int));
-                packState(tempSendState, packedState);
-                printState(tempSendState);
-                
-                MPI_Ssend(packedState, n*n+3, MPI_INT, rightNeighbor, UNEXAMINED_SUBPROBLEM, 
-                    MPI_COMM_WORLD);
+                //int *packedState = (int*)malloc((n*n+3) * sizeof(int));
+                //packState(tempSendState, packedState);
+                //printState(tempSendState);
+                //
+                //MPI_Ssend(packedState, n*n+3, MPI_INT, rightNeighbor, UNEXAMINED_SUBPROBLEM, 
+                //    MPI_COMM_WORLD);
 
                 //MPI_Send(&tempSendState, sizeof(struct state), MPI_BYTE, rightNeighbor, 
                 //    UNEXAMINED_SUBPROBLEM, MPI_COMM_WORLD);
-
-                free(packedState);
+                
+                //free(packedState);
+                //freeState(tempSendState);
 
                 msgCount = msgCount + 1;
                 color = BLACK;
@@ -374,11 +403,15 @@ int main(int argc, char *argv[])
                     for(i=0; i<numDirections; i++)
                     {
                         k = directions[i];
-                        nextState = makeAState(k, currentState); //this is v in the pseudo code
+                        //printf("direction: %d \n",k);
+                        struct state *nextState = (state*)malloc(sizeof(struct state));
+                        makeAState(k, currentState, nextState); //this is v in the pseudo code
+                        //printf("node %d, next state: \n", myRank);
+                        //printState(nextState);
                         if(nextState->lowerBound < global_c)
                         {
-                            printf("node %d, next state: \n", myRank);
-                            printState(nextState);
+                            //printf("node %d, next state: \n", myRank);
+                            //printState(nextState);
                             queue.push(*nextState);
                         }
                     }
