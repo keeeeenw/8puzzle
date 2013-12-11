@@ -144,9 +144,9 @@ int main(int argc, char *argv[])
 	}
 
 
-    //int i = 0;
-    //for (int i=0; i<1000; i++) //this suppose to repeat forever
-    while(true)
+    int ic = 0;
+    for (int ic=0; ic<1000; ic++) //this suppose to repeat forever
+    //while(true)
     {
         //if(queue.empty() || timeDiff(&lastComm) > COMM_INTERVAL)
         if(queue.empty() || MPI_Wtime()-last_comm > COMM_INTERVAL)
@@ -335,7 +335,63 @@ int main(int argc, char *argv[])
         }
         else if(!queue.empty()) //distribute the work
         {
-            //printf("queue not empty on node %d \n", myRank);
+            *currentState = queue.top();
+            queue.pop();
+            printf("queue not empty on node %d, current state: \n", myRank);
+            printState(currentState);
+
+            if(currentState->lowerBound < local_c )
+            {
+                color = BLACK;
+                // if currentState is the solution
+                if(checkResult(currentState->board, currentState->dim))
+                {
+                    if(currentState->lowerBound < global_c)
+                    {
+                        *local_bestState = *currentState;
+                        local_c = currentState->lowerBound;
+                    }
+                }
+                else
+                {
+                    int i, k;
+                    int holeCol, holeRow;
+
+                    // Find out the location of the hole
+                    for(i=0; i<currentState->dim*currentState->dim; i++){
+                        if(currentState->board[i]==0){
+                            holeRow = i / currentState->dim;
+                            holeCol = i % currentState->dim;
+                        }
+                    }
+
+                    // Find directions of the states based on the location of the hole
+                    int numDirections = 4; //at most 4 directions
+                    int *directions = (int*)malloc(numDirections * sizeof(int));
+                    numDirections = setHoleDirection(directions, holeRow, holeCol, currentState->dim);
+
+                    // For each direction, find the nextState
+                    for(i=0; i<numDirections; i++)
+                    {
+                        k = directions[i];
+                        nextState = makeAState(k, currentState); //this is v in the pseudo code
+                        if(nextState->lowerBound < global_c)
+                        {
+                            printf("node %d, next state: \n", myRank);
+                            printState(nextState);
+                            queue.push(*nextState);
+                        }
+                    }
+                    //printPQueue(queue);
+
+                    ////printf("node %d here 10 \n", myRank);
+
+                    free(directions);
+                }
+            }
+
+
+
         }
 
 
