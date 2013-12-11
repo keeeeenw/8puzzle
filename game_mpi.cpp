@@ -133,9 +133,9 @@ int main(int argc, char *argv[])
 		//board[8] = 0;
 
 		// check solvability
-		while(!isSolvable(board, n)){
-			shuffleBoard(board, n*n);
-		}
+		//while(!isSolvable(board, n)){
+		//	shuffleBoard(board, n*n);
+		//}
 
         // Get the time after generate the board
         start_t = MPI_Wtime();
