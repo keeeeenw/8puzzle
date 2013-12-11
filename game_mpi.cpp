@@ -193,6 +193,9 @@ int main(int argc, char *argv[])
 
                 //Halt the process
                 printf("node %d, termination flag recieved \n", myRank);
+
+                //Free up spaces
+
                 MPI_Finalize(); 
                 return 0;
             }
@@ -260,6 +263,9 @@ int main(int argc, char *argv[])
                         }
                         printf("+++++++++++++++++ Solution ++++++++++++++++++++ \n");
                         printToken(token);
+
+                        //clean up space before finalize
+
                         MPI_Finalize(); //terminate itself
                         return 0;
                     }
@@ -300,7 +306,7 @@ int main(int argc, char *argv[])
             MPI_Iprobe(leftNeighbor, UNEXAMINED_SUBPROBLEM, MPI_COMM_WORLD, &unexaminedSubFlag, &status);
             while(unexaminedSubFlag!=0)
             {
-                printf("node %d received unexamined subproblem \n", myRank);
+                //printf("node %d received unexamined subproblem \n", myRank);
 
                 // initialize receive buffers
                 int *unPackedState = (int*)malloc((n*n+3) * sizeof(int));
@@ -335,7 +341,7 @@ int main(int argc, char *argv[])
             // if more than one unexamined subproblem in queue, then
             if(queue.size() > 1) //change this back to 1
             {
-                printf("node %d has unexamined subproblem \n", myRank);
+                //printf("node %d has unexamined subproblem \n", myRank);
                 struct state *tempSendState = (state*)malloc(sizeof(struct state));
                 //printPQueue(queue);
                 *tempSendState = queue.top();
@@ -369,8 +375,8 @@ int main(int argc, char *argv[])
         {
             *currentState = queue.top();
             queue.pop();
-            printf("queue not empty on node %d, current state: \n", myRank);
-            printState(currentState);
+            //printf("queue not empty on node %d, current state: \n", myRank);
+            //printState(currentState);
 
             if(currentState->lowerBound < local_c )
             {

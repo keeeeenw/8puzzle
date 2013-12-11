@@ -13,16 +13,12 @@ $(PROG): $(PROG).cpp
 $(PROG)_omp: $(PROG)_omp.cpp
 	$(CC) $(OMPFLAG) $(LFLAGS)_omp $(PROG)_omp.cpp
 
-$para-(PROG): para-$(PROG).cpp
-	$(MPICC) $(MPILFLAGS) para-$(PROG).cpp
-	
 $(PROG)_mpi: $(PROG)_mpi.cpp
 	$(MPICC) -g $(LFLAGS)_mpi $(PROG)_mpi.cpp
 
 all:
 	$(CC) $(LFLAGS) $(PROG).cpp
 	$(CC) $(OMPFLAG) $(LFLAGS)_omp $(PROG)_omp.cpp
-	$(MPICC) $(MPILFLAGS) para-$(PROG).cpp
 	$(MPICC) -g $(LFLAGS)_mpi $(PROG)_mpi.cpp
 
 clean:

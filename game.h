@@ -262,8 +262,13 @@ void setState(state *newState, int *board, int dim, int moveSoFar)
 
 void freeState(state *State)
 {
-	free(State->board);
-	free(State);
+    if (State)
+    {
+        if(State->board){
+            free(State->board);
+        }
+        free(State);
+    }
 }
 
 int* moveHole(int direction, int *board, int dim)
