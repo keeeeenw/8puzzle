@@ -226,7 +226,8 @@ int main(int argc, char *argv[])
                     MPI_COMM_WORLD, &status);
                 // unpack and reconstruct token
                 unpackToken(unPackedToken, token);
-                //free(unPackedToken);
+                free(unPackedToken);
+
                 if(myRank != MASTER)
                     msgCount--;
                 //printf("Process %d received token \n", myRank);
@@ -309,18 +310,13 @@ int main(int argc, char *argv[])
                 msgCount++;
                 color = BLACK;
 
-                //printToken(token);
-                //MPI_Ssend(token, sizeof(struct TOKEN), MPI_BYTE, rightNeighbor, Token, 
-                //    MPI_COMM_WORLD);
-
-                //printToken(token);
-
                 //initialize send buffer
                 int *packedToken = (int*)malloc((n*n+6) * sizeof(int));
                 // pack token
                 packToken(token, packedToken);
                 // send token to the successor
                 MPI_Ssend(packedToken, n*n+6, MPI_INT, rightNeighbor, Token, MPI_COMM_WORLD);
+                free(packedToken);
                 color = WHITE; //after sending message
             }
 
@@ -343,8 +339,8 @@ int main(int argc, char *argv[])
                 
                 // unpack receive problem and create new state
                 unpackState(unPackedState, tempRecvState);
+                free(unPackedState);
                 //printState(tempRecvState);
-                //free(unPackedState);
                 //freeState(tempRecvState);
 
                 msgCount = msgCount - 1;
@@ -372,18 +368,13 @@ int main(int argc, char *argv[])
                 //printf("node %d poped the following state \n", myRank);
                 //printState(tempSendState);
 
-                //int *packedState = (int*)malloc((n*n+3) * sizeof(int));
-                //packState(tempSendState, packedState);
-                //printState(tempSendState);
-                //
-                //MPI_Ssend(packedState, n*n+3, MPI_INT, rightNeighbor, UNEXAMINED_SUBPROBLEM, 
-                //    MPI_COMM_WORLD);
-
-                //MPI_Send(&tempSendState, sizeof(struct state), MPI_BYTE, rightNeighbor, 
-                //    UNEXAMINED_SUBPROBLEM, MPI_COMM_WORLD);
+                int *packedState = (int*)malloc((n*n+3) * sizeof(int));
+                packState(tempSendState, packedState);
+                printState(tempSendState);
                 
-                //free(packedState);
-                //freeState(tempSendState);
+                MPI_Ssend(packedState, n*n+3, MPI_INT, rightNeighbor, UNEXAMINED_SUBPROBLEM, 
+                    MPI_COMM_WORLD);
+                free(packedState);
 
                 msgCount = msgCount + 1;
                 color = BLACK;
@@ -398,7 +389,11 @@ int main(int argc, char *argv[])
         {
             *currentState = queue.top();
             queue.pop();
+
+            #ifdef DEBUG
             //printf("queue not empty on node %d, current state: \n", myRank);
+            #endif 
+
             //printState(currentState);
 
             if(currentState->lowerBound < local_c )
