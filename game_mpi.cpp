@@ -40,6 +40,7 @@ void printToken(struct TOKEN *token)
 int main(int argc, char *argv[])
 {
 	int myRank, numProcs;				// MPI related variables
+    double start_t = 0, end_t = 0, total_t = 0; //time evaluation
 
 	// initialize MPI
     MPI_Init(&argc, &argv);
@@ -96,6 +97,7 @@ int main(int argc, char *argv[])
 
 	if(myRank == MASTER) //master initialize board
 	{
+
         //create board
 		int *board;
 		board = (int*)malloc(n*n * sizeof(int));
@@ -135,10 +137,16 @@ int main(int argc, char *argv[])
 			shuffleBoard(board, n*n);
 		}
 
+        // Get the time after generate the board
+        start_t = MPI_Wtime();
+
         // set initial set
 		setState(initial, board, n, 0);
+
+        #ifdef DEBUG
         printf("Initial \n");
         printBoard(initial->board, n);
+        #endif
 
         //push the state to the queue
 		queue.push(*initial);
@@ -192,7 +200,9 @@ int main(int argc, char *argv[])
                 MPI_Recv(0, 0, MPI_INT, MASTER, TERMINATION, MPI_COMM_WORLD, &status);
 
                 //Halt the process
+                #ifdef DEBUG
                 printf("node %d, termination flag recieved \n", myRank);
+                #endif
 
                 //Free up spaces
 
@@ -247,22 +257,35 @@ int main(int argc, char *argv[])
                 // HEAD receive token, node check termination
                 if(myRank == MASTER)
                 {
+                    #ifdef DEBUG
                     printf("*********** Master Received Token Start *************** \n");
                     printf("msgCount %d \n", msgCount);
                     printToken(token);
                     printf("*********** Master Received Token End *************** \n");
+                    #endif
 
                     if( color == WHITE 
                         && token->color == WHITE 
                         && token->count + msgCount == 0)
                     { 
+                        end_t = MPI_Wtime();
+                        total_t = end_t - start_t;
+
+                        #ifdef DEBUG
                         printf("Sending Termination Tag, Stop Master \n");
+                        #endif
+
                         int rank;
                         for (rank = 1; rank < numProcs; rank++) {
                             MPI_Send(0, 0, MPI_INT, rank, TERMINATION, MPI_COMM_WORLD);
                         }
+
+                        #ifdef DEBUG
                         printf("+++++++++++++++++ Solution ++++++++++++++++++++ \n");
                         printToken(token);
+                        printf("Total Time: \n");
+                        #endif
+                        printf("%f\n", total_t);
 
                         //clean up space before finalize
 
