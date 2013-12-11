@@ -100,25 +100,25 @@ int main(int argc, char *argv[])
 		int *board;
 		board = (int*)malloc(n*n * sizeof(int));
 		// fill specific board 
-		//board[0] = 8;
-		//board[1] = 7;
-		//board[2] = 0;
-		//board[3] = 2;
-		//board[4] = 3;
-		//board[5] = 6;
-		//board[6] = 4;
-		//board[7] = 5;
-		//board[8] = 1;
-
-		board[0] = 1;
-		board[1] = 5;
-		board[2] = 2;
-		board[3] = 4;
+		board[0] = 8;
+		board[1] = 7;
+		board[2] = 0;
+		board[3] = 2;
 		board[4] = 3;
-		board[5] = 0;
-		board[6] = 7;
-		board[7] = 8;
-		board[8] = 6;
+		board[5] = 6;
+		board[6] = 4;
+		board[7] = 5;
+		board[8] = 1;
+
+		//board[0] = 1;
+		//board[1] = 5;
+		//board[2] = 2;
+		//board[3] = 4;
+		//board[4] = 3;
+		//board[5] = 0;
+		//board[6] = 7;
+		//board[7] = 8;
+		//board[8] = 6;
 
 		//board[0] = 1;
 		//board[1] = 2;
@@ -166,13 +166,15 @@ int main(int argc, char *argv[])
 
     //int ic = 0;
     //for (int ic=0; ic<1000; ic++) //this suppose to repeat forever
+    int ic = 0;
     while(true)
     {
         
         //if(queue.empty() || timeDiff(&lastComm) > COMM_INTERVAL)
         //printf("Time Interval :%f \n",MPI_Wtime()-last_comm);
         //if(queue.empty() || timeDiff(&lastComm) > 200000)
-        if(queue.empty() || MPI_Wtime()-last_comm > 0.0000001)
+        //if(queue.empty() || MPI_Wtime()-last_comm > 0.0000001)
+        if(queue.empty() || ic % 100 ==0)
         {
             /****************************** BandB_Communication() Start ******************************/
             int terminationFlag = 0, tokenFlag = 0, unexaminedSubFlag = 0;
@@ -242,10 +244,10 @@ int main(int argc, char *argv[])
                 // HEAD receive token, node check termination
                 if(myRank == MASTER)
                 {
-                    //printf("*********** Master Received Token Start *************** \n");
-                    //printf("msgCount %d \n", msgCount);
-                    //printToken(token);
-                    //printf("*********** Master Received Token End *************** \n");
+                    printf("*********** Master Received Token Start *************** \n");
+                    printf("msgCount %d \n", msgCount);
+                    printToken(token);
+                    printf("*********** Master Received Token End *************** \n");
 
                     if( color == WHITE 
                         && token->color == WHITE 
@@ -360,7 +362,8 @@ int main(int argc, char *argv[])
 
             /****************************** BandB_Communication() End ******************************/
            //gettimeofday(&lastComm, NULL); //get current time
-           last_comm = MPI_Wtime();
+           //last_comm = MPI_Wtime();
+           ic++;
         }
         else if(!queue.empty()) //distribute the work
         {
