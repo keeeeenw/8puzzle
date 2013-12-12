@@ -161,16 +161,10 @@ int main(int argc, char *argv[])
 
 		/********************** CHECK SOLVABILITY **********************/
 		// check solvability
-<<<<<<< HEAD
-		//while(!isSolvable(board, n)){
-		//	shuffleBoard(board, n*n);
-		//}
-=======
 		/*while(!isSolvable(board, n)){
 			shuffleBoard(board, n*n);
 		}*/
 		/***************************************************************/
->>>>>>> 00b11f04afea56b1ec04396a1bba61a3850657bb
 
 		// START THE TIMER
 		start_t = MPI_Wtime();
