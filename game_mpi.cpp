@@ -128,6 +128,7 @@ int main(int argc, char *argv[])
 		*/
 
 		// medium board (183869 steps)
+        /*
 		board[0] = 1;
 		board[1] = 0;
 		board[2] = 3;
@@ -137,17 +138,18 @@ int main(int argc, char *argv[])
 		board[6] = 7;
 		board[7] = 6;
 		board[8] = 8;
+        */
 
 		// hard board (4007316 steps)
-		//board[0] = 8;
-		//board[1] = 5;
-		//board[2] = 3;
-		//board[3] = 4;
-		//board[4] = 7;
-		//board[5] = 6;
-		//board[6] = 1;
-		//board[7] = 0;
-		//board[8] = 2;
+		board[0] = 8;
+		board[1] = 5;
+		board[2] = 3;
+		board[3] = 4;
+		board[4] = 7;
+		board[5] = 6;
+		board[6] = 1;
+		board[7] = 0;
+		board[8] = 2;
 
 		// solution for check
 		/*
@@ -190,8 +192,8 @@ int main(int argc, char *argv[])
 		token->s = *initial;
 
 		// send token to next process (myRank = 1)
-		msgCount++;
-		color = BLACK;
+		//msgCount++;
+		//color = BLACK;
 		// initialize send buffer
 		int *initialPackedToken = (int*)malloc((n*n+6) * sizeof(int));
 		// pack token
@@ -200,7 +202,7 @@ int main(int argc, char *argv[])
 		MPI_Send(initialPackedToken, n*n+6, MPI_INT, 1, Token, MPI_COMM_WORLD);
 		// free send buffer
 		free(initialPackedToken);
-		color = WHITE;
+		//color = WHITE;
 	}
 
 	while(true)
@@ -249,8 +251,8 @@ int main(int argc, char *argv[])
 				unpackToken(unPackedToken, token);
 				free(unPackedToken);
 
-				if(myRank != MASTER)
-					msgCount--;
+				//if(myRank != MASTER)
+				//	msgCount--;
 
 				// update token cost if local cost is smaller
 				if(local_c < token->c)
@@ -328,8 +330,8 @@ int main(int argc, char *argv[])
 				}
 
 				// forward token to the successor
-				msgCount++;
-				color = BLACK;
+				//msgCount++;
+				//color = BLACK;
 
 				// initialize send buffer
 				int *packedToken = (int*)malloc((n*n+6) * sizeof(int));

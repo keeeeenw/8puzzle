@@ -429,8 +429,8 @@ void packState(state *State, int* array)
 	int dim = State->dim;
 	int size = dim * dim + 3;
 
-    printf("Before pack \n");
-    printBoard(State->board, dim);
+    //printf("Before pack \n");
+    //printBoard(State->board, dim);
 
 	array[0] = State -> dim;
 	array[1] = State -> moveSoFar;
