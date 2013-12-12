@@ -50,6 +50,9 @@ int main(int argc, char *argv[])
 	MPI_Comm_rank(MPI_COMM_WORLD, &myRank);
 	MPI_Comm_size(MPI_COMM_WORLD, &numProcs);
 	MPI_Status status;
+                
+    // setup random seed
+    srand(time(NULL));
 
 	// declare and initialize cost variables
 	int global_c, local_c;				// cost of global and local best solution so far
@@ -83,7 +86,7 @@ int main(int argc, char *argv[])
 	// initial state of the board
 	struct state *initial = (state*)malloc(sizeof(struct state));
 
-	// initialize local_bestState (best solution)
+    // initialize local_bestState (best solution)
 	struct state *local_bestState = (state*)malloc(sizeof(struct state));
 	int *local_board1;
 	local_board1 = (int*)malloc(n*n * sizeof(int));
@@ -125,7 +128,6 @@ int main(int argc, char *argv[])
 		*/
 
 		// medium board (183869 steps)
-		/*
 		board[0] = 1;
 		board[1] = 0;
 		board[2] = 3;
@@ -135,18 +137,17 @@ int main(int argc, char *argv[])
 		board[6] = 7;
 		board[7] = 6;
 		board[8] = 8;
-		*/
 
 		// hard board (4007316 steps)
-		board[0] = 8;
-		board[1] = 5;
-		board[2] = 3;
-		board[3] = 4;
-		board[4] = 7;
-		board[5] = 6;
-		board[6] = 1;
-		board[7] = 0;
-		board[8] = 2;
+		//board[0] = 8;
+		//board[1] = 5;
+		//board[2] = 3;
+		//board[3] = 4;
+		//board[4] = 7;
+		//board[5] = 6;
+		//board[6] = 1;
+		//board[7] = 0;
+		//board[8] = 2;
 
 		// solution for check
 		/*
@@ -196,7 +197,7 @@ int main(int argc, char *argv[])
 		// pack token
 		packToken(token, initialPackedToken);
 		// send token to the successor
-		MPI_Ssend(initialPackedToken, n*n+6, MPI_INT, 1, Token, MPI_COMM_WORLD);
+		MPI_Send(initialPackedToken, n*n+6, MPI_INT, 1, Token, MPI_COMM_WORLD);
 		// free send buffer
 		free(initialPackedToken);
 		color = WHITE;
@@ -208,7 +209,7 @@ int main(int argc, char *argv[])
 		//if(queue.empty() || timeDiff(&lastComm) > COMM_INTERVAL)
 		//if(queue.empty() || MPI_Wtime()-last_comm > COMM_INTERVAL)
 		// if use counter to check token
-		if(queue.empty() || ic % 200 ==0)
+		if(queue.empty() || ic % 20 ==0)
 		{
 			/****************************** BandB_Communication() Start ******************************/
 			// initialize pending message flags
@@ -335,7 +336,7 @@ int main(int argc, char *argv[])
 				// pack token
 				packToken(token, packedToken);
 				// send token to the successor
-				MPI_Ssend(packedToken, n*n+6, MPI_INT, rightNeighbor, Token, MPI_COMM_WORLD);
+				MPI_Send(packedToken, n*n+6, MPI_INT, rightNeighbor, Token, MPI_COMM_WORLD);
 				// free buffer
 				free(packedToken);
 				//after sending message
@@ -346,7 +347,8 @@ int main(int argc, char *argv[])
             #ifdef DEBUG
             //printf("node %d probing for unexamined subproblem \n", myRank);
             #endif 
-			MPI_Iprobe(leftNeighbor, UNEXAMINED_SUBPROBLEM, MPI_COMM_WORLD, &unexaminedSubFlag, &status);
+			//MPI_Iprobe(leftNeighbor, UNEXAMINED_SUBPROBLEM, MPI_COMM_WORLD, &unexaminedSubFlag, &status);
+			MPI_Iprobe(MPI_ANY_SOURCE, UNEXAMINED_SUBPROBLEM, MPI_COMM_WORLD, &unexaminedSubFlag, &status);
 			while(unexaminedSubFlag!=0)
 			{
                 #ifdef DEBUG
@@ -357,7 +359,7 @@ int main(int argc, char *argv[])
 				int *unPackedState = (int*)malloc((n*n+3) * sizeof(int));
 				struct state *tempRecvState = (state*)malloc(sizeof(struct state));
 
-				MPI_Recv(unPackedState, n*n+3, MPI_INT, leftNeighbor, UNEXAMINED_SUBPROBLEM, 
+				MPI_Recv(unPackedState, n*n+3, MPI_INT, MPI_ANY_SOURCE, UNEXAMINED_SUBPROBLEM, 
 					MPI_COMM_WORLD, &status);
 				
 				// unpack receive problem and create new state
@@ -374,7 +376,7 @@ int main(int argc, char *argv[])
 
 				// reset tag to continue receiving sub problem
 				unexaminedSubFlag = 0;
-				MPI_Iprobe(leftNeighbor, UNEXAMINED_SUBPROBLEM, MPI_COMM_WORLD, &unexaminedSubFlag, &status);
+				MPI_Iprobe(MPI_ANY_SOURCE, UNEXAMINED_SUBPROBLEM, MPI_COMM_WORLD, &unexaminedSubFlag, &status);
 			}
 
 			/*********************** handle subproblem in q **************************/
@@ -397,7 +399,20 @@ int main(int argc, char *argv[])
 				int *packedState = (int*)malloc((n*n+3) * sizeof(int));
 				packState(tempSendState, packedState);
 				
-				MPI_Ssend(packedState, n*n+3, MPI_INT, rightNeighbor, UNEXAMINED_SUBPROBLEM, 
+				//MPI_Ssend(packedState, n*n+3, MPI_INT, rightNeighbor, UNEXAMINED_SUBPROBLEM, 
+
+                // Send it to a random node
+                int node = rand() % numProcs;
+                while (node == myRank)
+                {
+                    node = rand() % numProcs;
+                }
+
+                #ifdef DEBUG
+                printf("node %d, sending to node %d \n", myRank, node);
+                #endif 
+
+				MPI_Send(packedState, n*n+3, MPI_INT, node, UNEXAMINED_SUBPROBLEM, 
 					MPI_COMM_WORLD);
 
 				// free pack buffer
@@ -419,7 +434,7 @@ int main(int argc, char *argv[])
 			queue.pop();
 
 			#ifdef DEBUG
-            //printf("queue not empty on node %d, current state: \n", myRank);
+            printf("queue not empty on node %d, queue size: %lu \n", myRank, queue.size());
 			//printState(currentState);
 			#endif 
 
@@ -480,7 +495,9 @@ int main(int argc, char *argv[])
 		}
         ic++;
         #ifdef DEBUG
-        printf("node %d, queue size %lu \n", myRank, queue.size());
+        //printf("node %d, queue size %lu \n", myRank, queue.size());
+        //if(ic % 20 == 0)
+        //    printf("ic: %d \n", ic);
         #endif
 
 	}
