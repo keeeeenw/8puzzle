@@ -3,12 +3,12 @@ Board 1:	28000 steps
 2   3   6   
 4   5   1
 
-Board 2:
+Board 2:	4007316 steps
 8	5	3	
 4	7	6	
 1	0	2	
 
-Board 3:	4000000 steps
+Board 3:	183869 steps
 1	0	3
 4	5	2
 7	6	8

@@ -1,10 +1,17 @@
+/*
+ * 8 Puzzle Solver using MPI (supporting methods file)
+ * Using Pseudo-code from "Parallel Programming in C with MPI and OpenMP" by Michael Quinn
+ * Pseudo-code can be found on page 389 - 390, note that multiple errors were found in it
+ * Author: Yu Zhao (Meow Meow) and Zixiao Wang (Ken)
+ * Date: December 2013
+*/
+
 #include <stdio.h>		// for printf
 #include <stdlib.h>		// for malloc
 #include <string.h>		// for memcpy
 #include <iostream>		// for CPP
 #include <queue>		// for priority queue
 #include <sys/time.h>	// for gettimeofday
-#include <mpi.h>        // for MPI routines, definitions, etc
 
 enum Color{ WHITE, BLACK };
 
@@ -41,7 +48,6 @@ bool checkResult(int *board, int dim);
 void setState(state *newState, int *board, int dim, int moveSoFar);
 void freeState(state *State);
 int* moveHole(int direction, int *board, int dim);
-//state* makeAState(int direction, state *currentState);
 void makeAState(int direction, state *currentState, state *nextState);
 int setHoleDirection(int *directions, int holeRow, int holeCol, int n);
 void printPQueue(priority_queue<state> queue);
@@ -54,102 +60,7 @@ void unpackState(int* packedState, state *newState);
 void packToken(TOKEN *token, int* array);
 void unpackToken(int* packedToken, TOKEN *newToken);
 
-void packToken(TOKEN *token, int* array)
-{
-	int dim = token->s.dim;
-	int size = dim * dim + 6;
-
-	array[0] = token -> c;
-	// BLACK is 0 and WHITE is 1
-	if(token->color == WHITE)
-		array[1] = 1;
-	else
-		array[1] = 0;
-	array[2] = token -> count;
-	array[3] = token -> s.dim;
-	array[4] = token -> s.moveSoFar;
-	array[5] = token -> s.lowerBound;
-
-	int i;
-	for(i=6; i<size; i++){
-		array[i] = token->s.board[i-6];
-	}
-}
-
-void unpackToken(int* packedToken, TOKEN *newToken)
-{
-	int dim = packedToken[3];
-	int *newBoard = (int*)malloc(dim*dim * sizeof(int));
-	struct state *newState = (state*)malloc(sizeof(struct state));
-
-	int i;
-	for(i=0; i<dim*dim; i++)
-	{
-		newBoard[i] = packedToken[i+6];
-	}
-
-	newState -> board = newBoard;
-	newState -> dim = packedToken[3];
-	newState -> moveSoFar = packedToken[4];
-	newState -> lowerBound = packedToken[5];
-
-	newToken -> c = packedToken[0];
-	// BLACK is 0 and WHITE is 1
-	if(packedToken[1] == 0)
-		newToken -> color = BLACK;
-	else
-		newToken -> color = WHITE;
-	newToken -> count = packedToken[2];
-	newToken -> s = *newState;
-}
-
-void packState(state *State, int* array)
-{
-    //printf("--------- packing start ------------\n");
-	int dim = State->dim;
-	int size = dim * dim + 3;
-
-    printf("Before pack \n");
-    printBoard(State->board, dim);
-
-	array[0] = State -> dim;
-	array[1] = State -> moveSoFar;
-	array[2] = State -> lowerBound;
-
-	int i;
-	for(i=3; i<size; i++){
-		array[i] = State->board[i-3];
-	}
-
-    //printf("dim %d \n", State->dim);
-    //printf("moveSoFar %d \n", State->moveSoFar);
-    //printf("lowerBound %d \n", State->lowerBound);
-    //printf("Packed Array \n");
-    //printArray(array, dim*dim+3);
-    //printf("--------- packing end ------------\n");
-}
-
-void unpackState(int* packedState, state *newState)
-{
-	int dim = packedState[0];
-	int *newBoard = (int*)malloc(dim*dim * sizeof(int));
-
-	int i;
-	for(i=0; i<dim*dim; i++)
-	{
-		newBoard[i] = packedState[i+3];
-	}
-
-    //printf("unpacked board \n");
-    //printBoard(newBoard, dim);
-
-	newState -> board = newBoard;
-	newState -> dim = packedState[0];
-	newState -> moveSoFar = packedState[1];
-	newState -> lowerBound = packedState[2];
-
-}
-
+/* This method shuffles a board randomly */
 void shuffleBoard(int *array, int n)
 {
 	if (n > 1){ 
@@ -163,6 +74,7 @@ void shuffleBoard(int *array, int n)
 	}
 }
 
+/* This method fills a board sequentially */
 void fillBoard(int *board, int dim)
 {
 	int i;
@@ -171,6 +83,7 @@ void fillBoard(int *board, int dim)
 	} 
 }
 
+/* This method prints out an array */
 void printArray(int *array, int dim)
 {
 	int i, j;
@@ -180,6 +93,7 @@ void printArray(int *array, int dim)
     printf("\n");
 }
 
+/* This method prints out a board */
 void printBoard(int *board, int dim)
 {
 	int i, j;
@@ -191,12 +105,15 @@ void printBoard(int *board, int dim)
 	}
 }
 
+/* This method prints out a state */
 void printState(struct state *state)
 {
 	printf("lowerBound: %d \n", state->lowerBound);
 	printBoard(state->board, state->dim);
 }
 
+/* This method gets manhattan distance between a tile's current 
+   location and its desired location */
 int getManhattan(int i, int dim, int sourceRow, int sourceCol)
 {
 	int targetRow = (i-1) / dim;
@@ -204,6 +121,8 @@ int getManhattan(int i, int dim, int sourceRow, int sourceCol)
 	return abs(sourceRow - targetRow)+abs(sourceCol - targetCol);
 }
 
+/* This method gets the sum of manhattan distances between each
+   tile's current location and its desired location */
 int getBoardManhattan(int *board, int dim)
 {
 	int i, j, sum=0, temp, item;
@@ -219,6 +138,7 @@ int getBoardManhattan(int *board, int dim)
 	return sum;
 }
 
+/* This method checks whether a board is result */
 bool checkResult(int *board, int dim)
 {
 	int i, j;
@@ -234,24 +154,9 @@ bool checkResult(int *board, int dim)
 	}
 
 	return true;
-	
-	//bool correct = true;
-	//for(i=0; i<dim; i++){
-	//	for(j=0; j<dim; j++){
-	//		//if(i != dim-1 && j != dim-1){
-	//		//	if(board[dim*i+j] != dim*i+j+1){
-	//		//		//correct = false;
-	//        //        return false;
-	//		//	}
-	//		//}
-	//        //if(board[dim*i+j] != dim*(i+1)+j+1){
-	//        //    return false;
-	//        //}
-	//	}
-	//}
-	//return correct;
 }
 
+/* This method initialize a states if given board, dim and movesofar */
 void setState(state *newState, int *board, int dim, int moveSoFar)
 {
 	newState->board = board;
@@ -260,6 +165,7 @@ void setState(state *newState, int *board, int dim, int moveSoFar)
 	newState->lowerBound = moveSoFar + getBoardManhattan(board, dim);
 }
 
+/* This method frees a state*/
 void freeState(state *State)
 {
     if (State)
@@ -271,6 +177,8 @@ void freeState(state *State)
     }
 }
 
+/* This method moves the 0 tile to certain direction and return the 
+   board after the movement */
 int* moveHole(int direction, int *board, int dim)
 {
 	int holeRow, holeCol, temp, i;
@@ -320,26 +228,19 @@ int* moveHole(int direction, int *board, int dim)
 		printf("Error moving at direction %d \n", direction);
 	}
 
-	//printf("New Board: \n");
-	//printBoard(newBoard, dim);
-
 	return newBoard;
 }
 
-//state* makeAState(int direction, state *currentState)
-//{
-//	struct state *nextState = (state*)malloc(sizeof(struct state));
-//	setState(nextState, moveHole(direction, currentState->board, currentState->dim), 
-//		currentState->dim, currentState->moveSoFar + 1);
-//	return nextState;
-//}
-
+/* This method sets nextState according to currentState */
 void makeAState(int direction, state *currentState, state *nextState)
 {
 	setState(nextState, moveHole(direction, currentState->board, currentState->dim), 
 		currentState->dim, currentState->moveSoFar + 1);
 }
 
+/* This method finds out possible moving direction according to the
+   position of the 0 tile, it puts the direction into "directions" 
+   array and return the number of possible directions */ 
 int setHoleDirection(int *directions, int holeRow, int holeCol, int n)
 {
 	/* 0 is up, 1 is down, 2 is left, 3 is right*/
@@ -406,6 +307,7 @@ int setHoleDirection(int *directions, int holeRow, int holeCol, int n)
 	return numDirections;
 }
 
+/* This method prints the priority queue for debugging purpose */
 void printPQueue(priority_queue<state> queue)
 {
 	priority_queue<state> queueCopy;
@@ -423,6 +325,7 @@ void printPQueue(priority_queue<state> queue)
 	queue = queueCopy;
 }
 
+/* This method compares two board and return whether they are same */
 bool compareBoard(int *board1, int *board2, int dim)
 {
 	int i;
@@ -433,6 +336,7 @@ bool compareBoard(int *board1, int *board2, int dim)
 	return true;
 }
 
+/* This method checks whether a newState is inside the queue already */
 bool pqueueContain(priority_queue<state> queue, struct state *newState, int dim)
 {
 	bool flag = false; //true it the queue contains newState
@@ -454,6 +358,7 @@ bool pqueueContain(priority_queue<state> queue, struct state *newState, int dim)
 	return flag;
 }
 
+/* This method checks whether a given problem is solvable or not*/
 bool isSolvable(int *board, int dim)
 {
 	int i, j, zeroPos, blankRow, inversions;
@@ -501,10 +406,11 @@ bool isSolvable(int *board, int dim)
 	}
 
 	free(newBoard);
-
 	return solvable;
 }
 
+/* This method returns the time different between currect time and 
+   given time */
 int timeDiff(timeval *start)
 {
 	long millisec, sec;
@@ -514,4 +420,102 @@ int timeDiff(timeval *start)
 	millisec = end.tv_usec - start->tv_usec;
 	sec = end.tv_sec - start->tv_sec;
 	return sec * 1000000 + millisec;
+}
+
+/* This method packs a state into an array */
+void packState(state *State, int* array)
+{
+    //printf("--------- packing start ------------\n");
+	int dim = State->dim;
+	int size = dim * dim + 3;
+
+    printf("Before pack \n");
+    printBoard(State->board, dim);
+
+	array[0] = State -> dim;
+	array[1] = State -> moveSoFar;
+	array[2] = State -> lowerBound;
+
+	int i;
+	for(i=3; i<size; i++){
+		array[i] = State->board[i-3];
+	}
+    //printf("dim %d \n", State->dim);
+    //printf("moveSoFar %d \n", State->moveSoFar);
+    //printf("lowerBound %d \n", State->lowerBound);
+    //printf("Packed Array \n");
+    //printArray(array, dim*dim+3);
+    //printf("--------- packing end ------------\n");
+}
+
+/* This method unpacks an array into a state */
+void unpackState(int* packedState, state *newState)
+{
+	int dim = packedState[0];
+	int *newBoard = (int*)malloc(dim*dim * sizeof(int));
+
+	int i;
+	for(i=0; i<dim*dim; i++)
+	{
+		newBoard[i] = packedState[i+3];
+	}
+
+    //printf("unpacked board \n");
+    //printBoard(newBoard, dim);
+
+	newState -> board = newBoard;
+	newState -> dim = packedState[0];
+	newState -> moveSoFar = packedState[1];
+	newState -> lowerBound = packedState[2];
+}
+
+/* This method packs a token into an array */
+void packToken(TOKEN *token, int* array)
+{
+	int dim = token->s.dim;
+	int size = dim * dim + 6;
+
+	array[0] = token -> c;
+	// BLACK is 0 and WHITE is 1
+	if(token->color == WHITE)
+		array[1] = 1;
+	else
+		array[1] = 0;
+	array[2] = token -> count;
+	array[3] = token -> s.dim;
+	array[4] = token -> s.moveSoFar;
+	array[5] = token -> s.lowerBound;
+
+	int i;
+	for(i=6; i<size; i++){
+		array[i] = token->s.board[i-6];
+	}
+}
+
+/* This method unpacks an array into token */
+void unpackToken(int* packedToken, TOKEN *newToken)
+{
+	int dim = packedToken[3];
+	int *newBoard = (int*)malloc(dim*dim * sizeof(int));
+	struct state *newState = (state*)malloc(sizeof(struct state));
+
+	int i;
+	for(i=0; i<dim*dim; i++)
+	{
+		newBoard[i] = packedToken[i+6];
+	}
+
+	newState -> board = newBoard;
+	newState -> dim = packedToken[3];
+	newState -> moveSoFar = packedToken[4];
+	newState -> lowerBound = packedToken[5];
+
+	newToken -> c = packedToken[0];
+	// BLACK is 0 and WHITE is 1
+	if(packedToken[1] == 0)
+		newToken -> color = BLACK;
+	else
+		newToken -> color = WHITE;
+	newToken -> count = packedToken[2];
+	newToken -> s = *newState;
 }

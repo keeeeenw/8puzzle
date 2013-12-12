@@ -68,8 +68,10 @@ int main(int argc, char *argv[])
 	priority_queue<state> queue;		// priority queue, each process has its own queue
 
 	/********************** USE TIME TO CHECK TOKEN **********************/
-	//double last_comm;					// time of last communication
+	//timeval last_comm;				// time of last communication
 	//gettimeofday(&lastComm, NULL);	// use gettimeofday to obtain time
+
+	//double last_comm;					// time of last communication
 	//last_comm = MPI_Wtime();			// use MPI library to obtain time
 	/*********************************************************************/
 
@@ -109,7 +111,7 @@ int main(int argc, char *argv[])
 		int *board;
 		board = (int*)malloc(n*n * sizeof(int));
 
-		// easy board from book (within 100 steps)
+		// easy board from book (6 steps)
 		/*
 		board[0] = 1;
 		board[1] = 5;
@@ -122,20 +124,8 @@ int main(int argc, char *argv[])
 		board[8] = 6;
 		*/
 
-		// medium board (within 29000 steps)
+		// medium board (183869 steps)
 		/*
-		board[0] = 8;
-		board[1] = 7;
-		board[2] = 0;
-		board[3] = 2;
-		board[4] = 3;
-		board[5] = 6;
-		board[6] = 4;
-		board[7] = 5;
-		board[8] = 1;
-		*/
-
-		// hard board (around 4,000,000 steps)
 		board[0] = 1;
 		board[1] = 0;
 		board[2] = 3;
@@ -145,6 +135,18 @@ int main(int argc, char *argv[])
 		board[6] = 7;
 		board[7] = 6;
 		board[8] = 8;
+		*/
+
+		// hard board (4007316 steps)
+		board[0] = 8;
+		board[1] = 5;
+		board[2] = 3;
+		board[3] = 4;
+		board[4] = 7;
+		board[5] = 6;
+		board[6] = 1;
+		board[7] = 0;
+		board[8] = 2;
 
 		// solution for check
 		/*
