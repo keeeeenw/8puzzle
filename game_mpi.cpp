@@ -68,8 +68,8 @@ int main(int argc, char *argv[])
 	priority_queue<state> queue;		// priority queue, each process has its own queue
 
 	/********************** USE TIME TO CHECK TOKEN **********************/
-	//timeval last_comm;				// time of last communication
-	//gettimeofday(&lastComm, NULL);	// use gettimeofday to obtain time
+	timeval lastComm;				// time of last communication
+	gettimeofday(&lastComm, NULL);	// use gettimeofday to obtain time
 
 	//double last_comm;					// time of last communication
 	//last_comm = MPI_Wtime();			// use MPI library to obtain time
@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
 		//if(queue.empty() || timeDiff(&lastComm) > COMM_INTERVAL)
 		//if(queue.empty() || MPI_Wtime()-last_comm > COMM_INTERVAL)
 		// if use counter to check token
-		if(queue.empty() || ic % 100 ==0)
+		if(queue.empty() || ic % 200 ==0)
 		{
 			/****************************** BandB_Communication() Start ******************************/
 			// initialize pending message flags
@@ -343,9 +343,16 @@ int main(int argc, char *argv[])
 			}
 
 			/*********************** handle Unexamined_Subproblem tag ***********************/
+            #ifdef DEBUG
+            //printf("node %d probing for unexamined subproblem \n", myRank);
+            #endif 
 			MPI_Iprobe(leftNeighbor, UNEXAMINED_SUBPROBLEM, MPI_COMM_WORLD, &unexaminedSubFlag, &status);
 			while(unexaminedSubFlag!=0)
 			{
+                #ifdef DEBUG
+                printf("node %d receives unexamined problem \n", myRank);
+                #endif 
+
 				// initialize receive buffers
 				int *unPackedState = (int*)malloc((n*n+3) * sizeof(int));
 				struct state *tempRecvState = (state*)malloc(sizeof(struct state));
@@ -372,8 +379,16 @@ int main(int argc, char *argv[])
 
 			/*********************** handle subproblem in q **************************/
 			// if more than one unexamined subproblem in queue, then
+            #ifdef DEBUG
+            if(myRank == MASTER)
+                printf("node %d, queue size %lu \n", myRank, queue.size());
+            #endif 
 			if(queue.size() > 1)
 			{
+                #ifdef DEBUG
+                printf("node %d has unexamined problem \n", myRank);
+                #endif 
+
 				struct state *tempSendState = (state*)malloc(sizeof(struct state));
 				*tempSendState = queue.top();
 				queue.pop();
@@ -394,10 +409,9 @@ int main(int argc, char *argv[])
 
 			/****************************** BandB_Communication() End ******************************/
 			// if use time to check token
-			//gettimeofday(&lastComm, NULL); //get current time
+			gettimeofday(&lastComm, NULL); //get current time
 			//last_comm = MPI_Wtime();
 			// if use counter to check token
-			ic++;
 		}
 		else if(!queue.empty()) //distribute the work
 		{
@@ -405,7 +419,7 @@ int main(int argc, char *argv[])
 			queue.pop();
 
 			#ifdef DEBUG
-			//printf("queue not empty on node %d, current state: \n", myRank);
+            //printf("queue not empty on node %d, current state: \n", myRank);
 			//printState(currentState);
 			#endif 
 
@@ -464,5 +478,10 @@ int main(int argc, char *argv[])
 				}
 			}
 		}
+        ic++;
+        #ifdef DEBUG
+        printf("node %d, queue size %lu \n", myRank, queue.size());
+        #endif
+
 	}
 }
